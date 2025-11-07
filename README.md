@@ -67,6 +67,39 @@ npm run test:e2e:ui
 npm run test:unit
 ```
 
+## Lint（推奨: 開発環境で高速実行）
+
+ローカルの開発コンテナが立ち上がっている場合は、コンテナ内で直接 linter を実行すると非常に高速です。以下は推奨の実行方法です。
+
+- 開発コンテナが起動している場合（PowerShell）:
+
+```powershell
+# コンテナ名が `sudoku` の場合
+docker compose exec sudoku sh -c "cd /app && npm run lint"
+```
+
+- 開発コンテナが起動している場合（Linux/macOS）:
+
+```bash
+docker compose exec sudoku sh -c 'cd /app && npm run lint'
+```
+
+- 開発コンテナを使わないローカル実行:
+
+```bash
+cd app
+npm run lint
+```
+
+- 便利スクリプト（Windows PowerShell）: リポジトリルートにある `run-lint.ps1` を使うと、node_modules が無ければ自動インストールし、必要なリカバリも試みたうえで lint を実行します。
+
+```powershell
+.
+un-lint.ps1
+```
+
+注: CI では `lint` ジョブが追加されており、依存関係をインストールしてから linter を実行します。開発環境で早くチェックしたい場合は上記のコンテナ内実行が最速です。
+
 ## CI/CD
 
 このプロジェクトはGitHub Actionsを使用して継続的インテグレーションを実装しています。
