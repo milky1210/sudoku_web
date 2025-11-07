@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 FROM node:20.18.1-bookworm-slim
 
 # Install system dependencies for Playwright
@@ -42,18 +44,21 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
+
 WORKDIR /app
 
-# Copy package files
+# Copy package files first so install layer can be cached when package files don't change
 COPY app/package*.json ./
 
-# Install dependencies
-RUN npm install
+# Use BuildKit cache mounts to speed up npm installs across builds
+# (requires BuildKit - we set DOCKER_BUILDKIT=1 in the build environment)
+RUN --mount=type=cache,target=/root/.npm \
+    npm install --prefer-offline --no-audit
 
 # Copy source code
 COPY app/ .
 
-# Install Playwright browsers
+# Cache Playwright downloads to speed subsequent builds
 RUN npx playwright install --with-deps
 
 # Expose port
