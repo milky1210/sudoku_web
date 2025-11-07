@@ -58,6 +58,7 @@ jobs:
         context: .
         file: ./Dockerfile.ci
         push: false
+        load: true
         tags: sudoku-web:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
