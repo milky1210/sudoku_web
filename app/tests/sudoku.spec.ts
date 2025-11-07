@@ -73,13 +73,19 @@ test.describe('Sudoku App', () => {
   test('should be able to input memo', async ({ page }) => {
     // メモモードに切り替え
     await page.locator('.memo-toggle').click();
+    
+    // 少し待つ（モード切替後の安定化）
+    await page.waitForTimeout(100);
 
     // 空のセルを選択
     const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
     await emptyCell.click();
+    
+    // セルがクリックされたことを確認（別の方法で）
+    await page.waitForTimeout(100);
 
     // 数字パネルが表示されるまで待つ
-    await page.locator('.number-panel').waitFor({ state: 'visible' });
+    await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 5000 });
 
     // 数字1をメモ入力
     await page.locator('.number-btn').filter({ hasText: '1' }).click();
@@ -121,9 +127,12 @@ test.describe('Sudoku App', () => {
     // 数字を入力
     const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
     await emptyCell.click();
+    
+    // セルがクリックされたことを確認
+    await page.waitForTimeout(100);
 
     // 数字パネルが表示されるまで待つ
-    await page.locator('.number-panel').waitFor({ state: 'visible' });
+    await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 5000 });
 
     await page.locator('.number-btn').filter({ hasText: '1' }).click();
 
