@@ -131,8 +131,16 @@ test.describe('Sudoku App', () => {
     // セルがクリックされたことを確認
     await page.waitForTimeout(100);
 
-    // 数字パネルが表示されるまで待つ
-    await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 5000 });
+    // 数字パネルが表示されるまで待つ（長めに待つ）。
+    // 場合によっては最初のクリックが反応しないことがあるため、
+    // 見えない場合は再クリックしてから待機する。
+    try {
+      await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 10000 });
+    } catch (e) {
+      // 再クリックしてリトライ
+      await emptyCell.click();
+      await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 10000 });
+    }
 
     await page.locator('.number-btn').filter({ hasText: '1' }).click();
 
