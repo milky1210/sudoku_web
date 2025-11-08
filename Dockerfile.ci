@@ -58,11 +58,14 @@ RUN --mount=type=cache,target=/root/.npm \
 # Copy source code
 COPY app/ .
 
-# Cache Playwright downloads to speed subsequent builds
-RUN npx playwright install --with-deps
+# Cache Playwright downloads to speed subsequent builds (only webkit for Safari)
+RUN npx playwright install webkit --with-deps
 
 # Expose port
 EXPOSE 5173
+
+# Set environment variable to run only webkit (Safari) tests
+ENV PLAYWRIGHT_ONLY=webkit
 
 # Default command
 CMD ["npm", "run", "test:e2e"]
