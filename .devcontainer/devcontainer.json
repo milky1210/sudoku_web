@@ -1,0 +1,22 @@
+{
+  "name": "Sudoku Web Dev Container",
+  "build": {
+    "dockerfile": "../docker/Dockerfile"
+  },
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "ms-vscode.vscode-typescript-next",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-playwright.playwright",
+        "ms-vscode.vscode-json"
+      ]
+    }
+  },
+  "forwardPorts": [5173],
+  "postCreateCommand": "npm install",
+  "remoteUser": "node"
+}

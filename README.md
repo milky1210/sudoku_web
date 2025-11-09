@@ -3,7 +3,15 @@
 
 ## セットアップ
 
-### Dockerを使用する場合（推奨）
+### Dev Containersを使用する場合（推奨）
+
+VS CodeのDev Containers拡張機能をインストールし、プロジェクトを開くと自動的に開発コンテナが構築されます。
+
+1. VS Codeでプロジェクトを開く
+2. コマンドパレット（Ctrl+Shift+P）から "Dev Containers: Reopen in Container" を選択
+3. コンテナが構築され、開発環境が整います
+
+### Dockerを使用する場合
 
 1. リポジトリをクローン
 ```bash
@@ -125,6 +133,8 @@ docker run --rm sudoku-web:test
 
 ```
 sudoku_web/
+├── .devcontainer/          # Dev Containers設定
+│   └── devcontainer.json
 ├── app/                    # Vue.jsアプリケーション
 │   ├── src/
 │   │   ├── components/     # Vueコンポーネント
@@ -133,9 +143,13 @@ sudoku_web/
 │   ├── tests/              # E2Eテスト
 │   ├── package.json
 │   └── ...
-├── docker-compose.yaml     # Docker Compose設定
-├── Dockerfile              # 開発用Dockerfile
-├── Dockerfile.ci           # CI用Dockerfile
+├── docker/                 # Docker設定
+│   ├── Dockerfile          # 開発用Dockerfile
+│   └── Dockerfile.ci       # CI用Dockerfile
+├── docker-compose.yaml     # Docker Compose設定（存在する場合）
+├── docker-install-lock.ps1 # npm installスクリプト
+├── run-ci.ps1              # CI実行スクリプト
+├── run-lint.ps1            # Lint実行スクリプト
 └── .github/workflows/      # GitHub Actionsワークフロー
 ```
 
@@ -153,5 +167,6 @@ sudoku_web/
 - **Frontend**: Vue 3 + TypeScript
 - **Build Tool**: Vite
 - **Testing**: Playwright (E2E), Vitest (Unit)
-- **Container**: Docker
+- **Linting**: ESLint, Oxlint
+- **Container**: Docker, Dev Containers
 - **CI/CD**: GitHub Actions

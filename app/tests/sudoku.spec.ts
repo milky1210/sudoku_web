@@ -20,7 +20,7 @@ test.describe('Sudoku App', () => {
 
   test.skip('should have number buttons 1-9', async ({ page }) => {
     // まずセルを選択して数字パネルを表示
-    const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
+    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
     await emptyCell.click();
 
     // 数字ボタンが表示されていることを確認
@@ -37,7 +37,7 @@ test.describe('Sudoku App', () => {
 
   test.skip('should be able to select a cell', async ({ page }) => {
     // 空のセルを選択（固定されていないセル）
-    const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
+    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
     await emptyCell.click();
 
     // 数字パネルが表示されていることを確認（セル選択の証拠）
@@ -46,7 +46,7 @@ test.describe('Sudoku App', () => {
 
   test('should be able to input a number', async ({ page }) => {
     // 空のセルを選択
-    const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
+    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
     await emptyCell.click();
 
     // 数字パネルが表示されるまで待つ
@@ -78,7 +78,7 @@ test.describe('Sudoku App', () => {
     await page.waitForTimeout(100);
 
     // 空のセルを選択
-    const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
+    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
     await emptyCell.click();
     
     // セルがクリックされたことを確認（別の方法で）
@@ -96,7 +96,7 @@ test.describe('Sudoku App', () => {
 
   test('should clear cell with clear button', async ({ page }) => {
     // 数字を入力
-    const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
+    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
     await emptyCell.click();
 
     // 数字パネルが表示されるまで待つ
@@ -125,7 +125,7 @@ test.describe('Sudoku App', () => {
 
   test('should reset puzzle', async ({ page }) => {
     // 数字を入力
-    const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
+    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
     await emptyCell.click();
     
     // セルがクリックされたことを確認
@@ -136,7 +136,7 @@ test.describe('Sudoku App', () => {
     // 見えない場合は再クリックしてから待機する。
     try {
       await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 10000 });
-    } catch (e) {
+    } catch {
       // 再クリックしてリトライ
       await emptyCell.click();
       await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 10000 });
@@ -168,7 +168,7 @@ test.describe('Sudoku App', () => {
     await expect(page.locator('.sudoku-grid')).toBeVisible();
 
     // モバイルではセルを選択しないと数字パネルが表示されない
-    const emptyCell = page.locator('.cell').filter({ hasNotClass: 'fixed-value' }).first();
+    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
     await emptyCell.click();
     await expect(page.locator('.number-panel')).toBeVisible();
   });
