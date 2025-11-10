@@ -39,6 +39,7 @@ const store = useSudokuStore()
 
 .number-btn {
   aspect-ratio: 1;
+  min-width: 0;
   font-size: 20px;
   font-weight: bold;
   border: 2px solid #3498db;
@@ -50,6 +51,10 @@ const store = useSudokuStore()
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   font-variant-numeric: tabular-nums;
+  font-family: 'Courier New', Courier, monospace, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .number-btn.selected {
