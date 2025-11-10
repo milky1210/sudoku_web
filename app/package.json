@@ -18,6 +18,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "pinia": "^3.0.4",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
@@ -32,7 +33,6 @@
     "@vue/eslint-config-typescript": "^14.4.0",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
-    "shell-quote": "^1.7.3",
     "eslint": "^9.20.1",
     "eslint-plugin-oxlint": "^0.15.10",
     "eslint-plugin-vue": "^9.32.0",
@@ -41,6 +41,7 @@
     "npm-run-all2": "^7.0.2",
     "oxlint": "^0.15.10",
     "prettier": "^3.5.1",
+    "shell-quote": "^1.7.3",
     "typescript": "~5.7.3",
     "vite": "^6.1.0",
     "vite-plugin-vue-devtools": "^7.7.2",
