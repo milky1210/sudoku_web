@@ -1,7 +1,8 @@
 {
   "name": "Sudoku Web Dev Container",
   "build": {
-    "dockerfile": "../docker/Dockerfile"
+    "dockerfile": "../docker/Dockerfile",
+    "context": ".."
   },
   "workspaceFolder": "/app",
   "customizations": {

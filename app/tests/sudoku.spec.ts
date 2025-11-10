@@ -1,53 +1,6 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-// ヘルパー関数: 空のセルを選択し、数字パネルが表示されるまで待つ
-async function selectEmptyCellAndWaitForPanel(page: Page) {
-  // まず81個のセルが全て読み込まれるまで待つ
-  await page.locator('.cell').nth(80).waitFor({ state: 'visible' });
-
-  // 空のセルが存在することを確認（少し待つ）
-  await page.waitForTimeout(200);
-
-  // 空のセルを特定し、そのインデックスを保存
-  const cells = page.locator('.cell');
-  let emptyCellIndex = -1;
-
-  for (let i = 0; i < 81; i++) {
-    const cell = cells.nth(i);
-    const hasFixedClass = await cell.evaluate(el => el.querySelector('.fixed-value') !== null);
-    if (!hasFixedClass) {
-      emptyCellIndex = i;
-      break;
-    }
-  }
-
-  if (emptyCellIndex === -1) {
-    throw new Error('No empty cell found');
-  }
-
-  const emptyCell = cells.nth(emptyCellIndex);
-
-  // 数字パネルが表示されるまで最大5回試行
-  let panelVisible = false;
-  for (let attempt = 0; attempt < 5; attempt++) {
-    // 強制的にクリックを実行
-    await emptyCell.click({ force: true });
-    try {
-      await page.locator('.number-panel').waitFor({ state: 'visible', timeout: 2000 });
-      panelVisible = true;
-      break;
-    } catch {
-      // クリック失敗したら少し待って次の試行へ
-      await page.waitForTimeout(500);
-    }
-  }
-
-  if (!panelVisible) {
-    throw new Error('Number panel did not appear after 5 attempts');
-  }
-
-  return emptyCell;
-}test.describe('Sudoku App', () => {
+test.describe('Sudoku App', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // ページが完全に読み込まれ、Vueコンポーネントが初期化されるまで待つ
@@ -57,8 +10,51 @@ async function selectEmptyCellAndWaitForPanel(page: Page) {
     await page.waitForTimeout(300);
   });
 
-  test('should display the sudoku title', async ({ page }) => {
+  test('should display the sudoku title and cost', async ({ page }) => {
     await expect(page.locator('h1')).toContainText('数独');
+    await expect(page.locator('.cost-display')).toBeVisible();
+  });
+
+  test('should have mode tabs', async ({ page }) => {
+    await expect(page.locator('.mode-tab.write')).toBeVisible();
+    await expect(page.locator('.mode-tab.memo')).toBeVisible();
+    await expect(page.locator('.mode-tab.view')).toBeVisible();
+    await expect(page.locator('.mode-tab.skill')).toBeVisible();
+  });
+
+  test('should switch between modes', async ({ page }) => {
+    // デフォルトは書込モード
+    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
+
+    // メモモードに切り替え
+    await page.locator('.mode-tab.memo').click();
+    await expect(page.locator('.mode-tab.memo')).toHaveClass(/active/);
+    await expect(page.locator('.mode-tab.write')).not.toHaveClass(/active/);
+
+    // ビューモードに切り替え
+    await page.locator('.mode-tab.view').click();
+    await expect(page.locator('.mode-tab.view')).toHaveClass(/active/);
+    await expect(page.locator('.mode-tab.memo')).not.toHaveClass(/active/);
+
+    // スキルモードに切り替え
+    await page.locator('.mode-tab.skill').click();
+    await expect(page.locator('.mode-tab.skill')).toHaveClass(/active/);
+    await expect(page.locator('.mode-tab.view')).not.toHaveClass(/active/);
+  });
+
+  test('should show number panel in write mode', async ({ page }) => {
+    await expect(page.locator('.number-panel')).toBeVisible();
+  });
+
+  test('should not show number panel in view mode', async ({ page }) => {
+    await page.locator('.mode-tab.view').click();
+    await expect(page.locator('.number-panel')).not.toBeVisible();
+  });
+
+  test('should show skill panel in skill mode', async ({ page }) => {
+    await page.locator('.mode-tab.skill').click();
+    await expect(page.locator('.skill-panel')).toBeVisible();
+    await expect(page.locator('.skill-btn')).toHaveCount(4);
   });
 
   test('should have a sudoku grid with 81 cells', async ({ page }) => {
@@ -92,12 +88,29 @@ async function selectEmptyCellAndWaitForPanel(page: Page) {
     await expect(page.locator('.number-panel')).toBeVisible();
   });
 
-  test('should be able to input a number', async ({ page }) => {
-    // 空のセルを選択し、数字パネルが表示されるまで待つ
-    const emptyCell = await selectEmptyCellAndWaitForPanel(page);
+  test('should be able to input a number in write mode', async ({ page }) => {
+    // 書込モードであることを確認
+    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
+
+    // 空のセルを選択
+    const cells = page.locator('.cell');
+    let emptyCellIndex = -1;
+
+    for (let i = 0; i < 81; i++) {
+      const cell = cells.nth(i);
+      const hasFixedClass = await cell.evaluate(el => el.querySelector('.fixed-value') !== null);
+      if (!hasFixedClass) {
+        emptyCellIndex = i;
+        break;
+      }
+    }
+
+    const emptyCell = cells.nth(emptyCellIndex);
+    await emptyCell.click();
+    await page.waitForTimeout(100);
 
     // 数字1を入力
-    await page.locator('.number-btn').filter({ hasText: '1' }).click();
+    await page.locator('.number-btn').filter({ hasText: /^1$/ }).click();
 
     // Vueのリアクティブ更新を待つ
     await page.waitForTimeout(100);
@@ -105,31 +118,45 @@ async function selectEmptyCellAndWaitForPanel(page: Page) {
     // セルに数字が表示されていることを確認
     await expect(emptyCell.locator('.main-value')).toBeVisible();
     await expect(emptyCell.locator('.main-value')).toContainText('1');
-  });
+  });  test('should toggle memo mode', async ({ page }) => {
+    // デフォルトは書込モード
+    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
 
-  test('should toggle memo mode', async ({ page }) => {
-    const memoButton = page.locator('.memo-toggle');
-    await expect(memoButton).toContainText('通常モード');
-
-    await memoButton.click();
-    await expect(memoButton).toContainText('メモモード');
-
-    await memoButton.click();
-    await expect(memoButton).toContainText('通常モード');
-  });
-
-  test('should be able to input memo', async ({ page }) => {
     // メモモードに切り替え
-    await page.locator('.memo-toggle').click();
+    await page.locator('.mode-tab.memo').click();
+    await expect(page.locator('.mode-tab.memo')).toHaveClass(/active/);
+
+    // 書込モードに戻す
+    await page.locator('.mode-tab.write').click();
+    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
+  });
+
+  test('should be able to input memo in memo mode', async ({ page }) => {
+    // メモモードに切り替え
+    await page.locator('.mode-tab.memo').click();
 
     // 少し待つ（モード切替後の安定化）
     await page.waitForTimeout(100);
 
-    // 空のセルを選択し、数字パネルが表示されるまで待つ
-    const emptyCell = await selectEmptyCellAndWaitForPanel(page);
+    // 空のセルを選択
+    const cells = page.locator('.cell');
+    let emptyCellIndex = -1;
+
+    for (let i = 0; i < 81; i++) {
+      const cell = cells.nth(i);
+      const hasFixedClass = await cell.evaluate(el => el.querySelector('.fixed-value') !== null);
+      if (!hasFixedClass) {
+        emptyCellIndex = i;
+        break;
+      }
+    }
+
+    const emptyCell = cells.nth(emptyCellIndex);
+    await emptyCell.click();
+    await page.waitForTimeout(100);
 
     // 数字1をメモ入力
-    await page.locator('.number-btn').filter({ hasText: '1' }).click();
+    await page.locator('.number-btn').filter({ hasText: /^1$/ }).click();
 
     // Vueのリアクティブ更新を待つ
     await page.waitForTimeout(100);
@@ -138,10 +165,26 @@ async function selectEmptyCellAndWaitForPanel(page: Page) {
     await expect(emptyCell.locator('.memo-num.active')).toBeVisible();
     await expect(emptyCell.locator('.memo-num.active')).toContainText('1');
   });  test('should clear cell with clear button', async ({ page }) => {
-    // 空のセルを選択し、数字パネルが表示されるまで待つ
-    const emptyCell = await selectEmptyCellAndWaitForPanel(page);
+    // 空のセルを選択
+    const cells = page.locator('.cell');
+    let emptyCellIndex = -1;
 
-    await page.locator('.number-btn').filter({ hasText: '1' }).click();
+    for (let i = 0; i < 81; i++) {
+      const cell = cells.nth(i);
+      const hasFixedClass = await cell.evaluate(el => el.querySelector('.fixed-value') !== null);
+      if (!hasFixedClass) {
+        emptyCellIndex = i;
+        break;
+      }
+    }
+
+    const emptyCell = cells.nth(emptyCellIndex);
+    await emptyCell.click();
+    await page.waitForTimeout(100);
+
+    // 数字を入力
+    await page.locator('.number-btn').filter({ hasText: /^1$/ }).click();
+    await page.waitForTimeout(100);
 
     // クリアボタンで消去
     await page.locator('.clear-btn').click();
@@ -163,17 +206,49 @@ async function selectEmptyCellAndWaitForPanel(page: Page) {
   });
 
   test('should reset puzzle', async ({ page }) => {
-    // 空のセルを選択し、数字パネルが表示されるまで待つ
-    const emptyCell = await selectEmptyCellAndWaitForPanel(page);
+    // 空のセルを選択
+    const cells = page.locator('.cell');
+    let emptyCellIndex = -1;
 
-    await page.locator('.number-btn').filter({ hasText: '1' }).click();
+    for (let i = 0; i < 81; i++) {
+      const cell = cells.nth(i);
+      const hasFixedClass = await cell.evaluate(el => el.querySelector('.fixed-value') !== null);
+      if (!hasFixedClass) {
+        emptyCellIndex = i;
+        break;
+      }
+    }
+
+    const emptyCell = cells.nth(emptyCellIndex);
+    await emptyCell.click();
+    await page.waitForTimeout(100);
+
+    // 数字を入力
+    await page.locator('.number-btn').filter({ hasText: /^1$/ }).click();
+    await page.waitForTimeout(100);
 
     // リセットボタンをクリック
     await page.locator('.btn').filter({ hasText: 'リセット' }).click();
 
     // 入力した数字が消えていることを確認
     await expect(emptyCell.locator('.main-value')).toBeHidden();
-  });  test('should check solution and show message', async ({ page }) => {
+  });
+
+  test('should check solution and show message', async ({ page }) => {
+    // チェックボタンをクリックする前に、数字パネル等のオーバーレイが
+    // コントロールを遮っていないことを確認して閉じる
+    const numberPanel = page.locator('.number-panel');
+    if (await numberPanel.isVisible()) {
+      // まずはページ外をクリックして選択を解除してみる
+      await page.locator('body').click();
+      await page.waitForTimeout(100);
+      // まだ表示されている場合はビューに切り替えて確実に非表示にする
+      if (await numberPanel.isVisible()) {
+        await page.locator('.mode-tab.view').click();
+        await page.waitForTimeout(100);
+      }
+    }
+
     // チェックボタンをクリック
     await page.locator('.btn').filter({ hasText: 'チェック' }).click();
 
@@ -182,16 +257,46 @@ async function selectEmptyCellAndWaitForPanel(page: Page) {
     await expect(message).toBeVisible();
   });
 
+  test('should work undo and redo', async ({ page }) => {
+    // 空のセルを選択
+    const cells = page.locator('.cell');
+    let emptyCellIndex = -1;
+
+    for (let i = 0; i < 81; i++) {
+      const cell = cells.nth(i);
+      const hasFixedClass = await cell.evaluate(el => el.querySelector('.fixed-value') !== null);
+      if (!hasFixedClass) {
+        emptyCellIndex = i;
+        break;
+      }
+    }
+
+    const emptyCell = cells.nth(emptyCellIndex);
+    await emptyCell.click();
+    await page.waitForTimeout(100);
+
+    // 数字を入力
+    await page.locator('.number-btn').filter({ hasText: /^1$/ }).click();
+    await page.waitForTimeout(100);
+    await expect(emptyCell.locator('.main-value')).toContainText('1');
+
+    // Undo
+    await page.locator('.action-btn').filter({ hasText: 'Undo' }).click();
+    await page.waitForTimeout(100);
+    await expect(emptyCell.locator('.main-value')).toBeHidden();
+
+    // Redo
+    await page.locator('.action-btn').filter({ hasText: 'Redo' }).click();
+    await page.waitForTimeout(100);
+    await expect(emptyCell.locator('.main-value')).toContainText('1');
+  });
+
   test.skip('should work on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     // モバイルレイアウトでも正常に動作することを確認
     await expect(page.locator('h1')).toBeVisible();
     await expect(page.locator('.sudoku-grid')).toBeVisible();
-
-    // モバイルではセルを選択しないと数字パネルが表示されない
-    const emptyCell = page.locator('.cell:not(.fixed-value)').first();
-    await emptyCell.click();
-    await expect(page.locator('.number-panel')).toBeVisible();
+    await expect(page.locator('.mode-tabs')).toBeVisible();
   });
 });
