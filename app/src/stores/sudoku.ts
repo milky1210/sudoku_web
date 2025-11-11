@@ -60,6 +60,25 @@ export const useSudokuStore = defineStore('sudoku', () => {
   const canUndo = computed(() => historyIndex.value > 0)
   const canRedo = computed(() => historyIndex.value < history.value.length - 1)
 
+  // 各数字が盤面に何個あるかをカウント
+  const numberCounts = computed(() => {
+    const counts: Record<number, number> = {}
+    for (let i = 1; i <= 9; i++) {
+      counts[i] = 0
+    }
+    grid.value.forEach((cell) => {
+      if (cell.value !== null) {
+        counts[cell.value]++
+      }
+    })
+    return counts
+  })
+
+  // 数字が9個埋まっているかチェック
+  const isNumberComplete = (num: number): boolean => {
+    return numberCounts.value[num] >= 9
+  }
+
   // Utility functions
   const isValid = (board: number[][], row: number, col: number, num: number): boolean => {
     // 行チェック
@@ -534,6 +553,8 @@ export const useSudokuStore = defineStore('sudoku', () => {
     // Computed
     canUndo,
     canRedo,
+    numberCounts,
+    isNumberComplete,
     // Actions
     setMode,
     selectCell,

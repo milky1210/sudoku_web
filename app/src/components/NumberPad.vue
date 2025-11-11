@@ -4,17 +4,12 @@
       v-for="num in 9"
       :key="num"
       @click="store.handleNumberClick(num)"
-      :class="['number-btn', { selected: store.selectedNumber === num }]"
+      :disabled="store.isNumberComplete(num)"
+      :class="['number-btn', { selected: store.selectedNumber === num, complete: store.isNumberComplete(num) }]"
     >
       {{ num }}
     </button>
-    <button @click="store.clearCell" class="number-btn clear-btn">消去</button>
-    <button @click="store.undo" :disabled="!store.canUndo" class="number-btn action-btn">
-      Undo
-    </button>
-    <button @click="store.redo" :disabled="!store.canRedo" class="number-btn action-btn">
-      Redo
-    </button>
+    <button @click="store.clearCell" class="number-btn clear-btn">Del</button>
   </div>
 </template>
 
@@ -72,15 +67,19 @@ const store = useSudokuStore()
   cursor: not-allowed;
 }
 
+.number-btn.complete {
+  background-color: #e0e0e0;
+  color: #999;
+  border-color: #bbb;
+}
+
 /* Prevent disabled buttons inside overlays from intercepting pointer events
    so underlying controls (e.g. footer buttons) can still receive clicks. */
-.number-panel .number-btn:disabled,
-.number-panel .action-btn:disabled {
+.number-panel .number-btn:disabled {
   pointer-events: none;
 }
 
 .clear-btn {
-  grid-column: span 2;
   font-size: 16px;
   border-color: #e74c3c;
   color: #e74c3c;
@@ -88,17 +87,6 @@ const store = useSudokuStore()
 
 .clear-btn:active {
   background-color: #e74c3c;
-  color: white;
-}
-
-.action-btn {
-  font-size: 14px;
-  border-color: #95a5a6;
-  color: #95a5a6;
-}
-
-.action-btn:active:not(:disabled) {
-  background-color: #95a5a6;
   color: white;
 }
 
