@@ -240,8 +240,9 @@ export const useSudokuStore = defineStore('sudoku', () => {
   // Actions
   const setMode = (mode: Mode): void => {
     currentMode.value = mode
-    selectedNumber.value = null
+    // モード切り替え時はselectedNumberをリセットしない
     if (mode !== 'write' && mode !== 'memo') {
+      selectedNumber.value = null
       selectedCell.value = -1
     }
   }

@@ -17,22 +17,22 @@ test.describe('Sudoku App', () => {
 
   test('should have mode toggle button', async ({ page }) => {
     await expect(page.locator('.mode-button')).toBeVisible();
-    await expect(page.locator('.mode-button')).toContainText('書込モード');
+    await expect(page.locator('.mode-button')).toContainText('書込');
   });
 
   test('should toggle between write and memo modes', async ({ page }) => {
     // デフォルトは書込モード
-    await expect(page.locator('.mode-button')).toContainText('書込モード');
+    await expect(page.locator('.mode-button')).toContainText('書込');
     await expect(page.locator('.mode-button')).toHaveClass(/write/);
 
     // メモモードに切り替え
     await page.locator('.mode-button').click();
-    await expect(page.locator('.mode-button')).toContainText('メモモード');
+    await expect(page.locator('.mode-button')).toContainText('メモ');
     await expect(page.locator('.mode-button')).toHaveClass(/memo/);
 
     // 書込モードに戻す
     await page.locator('.mode-button').click();
-    await expect(page.locator('.mode-button')).toContainText('書込モード');
+    await expect(page.locator('.mode-button')).toContainText('書込');
     await expect(page.locator('.mode-button')).toHaveClass(/write/);
   });
 
@@ -76,7 +76,7 @@ test.describe('Sudoku App', () => {
 
   test('should be able to input a number in write mode', async ({ page }) => {
     // 書込モードであることを確認
-    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
+    await expect(page.locator('.mode-button')).toHaveClass(/write/);
 
     // 空のセルを選択
     const cells = page.locator('.cell');
@@ -106,20 +106,20 @@ test.describe('Sudoku App', () => {
     await expect(emptyCell.locator('.main-value')).toContainText('1');
   });  test('should toggle memo mode', async ({ page }) => {
     // デフォルトは書込モード
-    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
+    await expect(page.locator('.mode-button')).toHaveClass(/write/);
 
     // メモモードに切り替え
-    await page.locator('.mode-tab.memo').click();
-    await expect(page.locator('.mode-tab.memo')).toHaveClass(/active/);
+    await page.locator('.mode-button').click();
+    await expect(page.locator('.mode-button')).toHaveClass(/memo/);
 
     // 書込モードに戻す
-    await page.locator('.mode-tab.write').click();
-    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
+    await page.locator('.mode-button').click();
+    await expect(page.locator('.mode-button')).toHaveClass(/write/);
   });
 
   test('should be able to input memo in memo mode', async ({ page }) => {
     // メモモードに切り替え
-    await page.locator('.mode-tab.memo').click();
+    await page.locator('.mode-button').click();
 
     // 少し待つ（モード切替後の安定化）
     await page.waitForTimeout(100);
@@ -271,7 +271,7 @@ test.describe('Sudoku App', () => {
     // モバイルレイアウトでも正常に動作することを確認
     await expect(page.locator('h1')).toBeVisible();
     await expect(page.locator('.sudoku-grid')).toBeVisible();
-    await expect(page.locator('.mode-tabs')).toBeVisible();
+    await expect(page.locator('.mode-button')).toBeVisible();
   });
 
   test('should have number buttons 1-9 and Del button', async ({ page }) => {
@@ -334,15 +334,8 @@ test.describe('Sudoku App', () => {
   });
 
   test('should activate auto89 skill only when one-cell gap exists', async ({ page }) => {
-    // スキルモードに切り替え
-    await page.locator('.mode-tab.skill').click();
-    await page.waitForTimeout(100);
-
-    // スキルパネルが表示されることを確認
-    await expect(page.locator('.skill-panel')).toBeVisible();
-
-    // 残り1マス埋めスキルボタンを取得
-    const auto89Btn = page.locator('.skill-btn').filter({ hasText: '残り1マス埋め' });
+    // 残り1マス埋めスキルボタンを取得（⑧アイコン）
+    const auto89Btn = page.locator('.skill-btn').filter({ hasText: '⑧' });
     await expect(auto89Btn).toBeVisible();
 
     // ボタンの状態を確認（残り1マスがあればアクティブ、なければ非アクティブ）
@@ -352,12 +345,8 @@ test.describe('Sudoku App', () => {
   });
 
   test('should fill only one cell when using auto89 skill', async ({ page }) => {
-    // スキルモードに切り替え
-    await page.locator('.mode-tab.skill').click();
-    await page.waitForTimeout(100);
-
-    // 残り1マス埋めスキルボタンを取得
-    const auto89Btn = page.locator('.skill-btn').filter({ hasText: '残り1マス埋め' });
+    // 残り1マス埋めスキルボタンを取得（⑧アイコン）
+    const auto89Btn = page.locator('.skill-btn').filter({ hasText: '⑧' });
 
     // スキルが有効な場合のみテスト実行
     const isDisabled = await auto89Btn.isDisabled();
@@ -390,12 +379,8 @@ test.describe('Sudoku App', () => {
   });
 
   test('should require number selection for memoN skill', async ({ page }) => {
-    // スキルモードに切り替え
-    await page.locator('.mode-tab.skill').click();
-    await page.waitForTimeout(100);
-
-    // 候補nメモスキルボタンを取得
-    const memoNBtn = page.locator('.skill-btn').filter({ hasText: '候補nメモ' });
+    // 候補メモスキルボタンを取得（📝アイコン）
+    const memoNBtn = page.locator('.skill-btn').filter({ hasText: '📝' });
     await expect(memoNBtn).toBeVisible();
 
     // 数字未選択の状態では無効であることを確認
