@@ -15,45 +15,31 @@ test.describe('Sudoku App', () => {
     await expect(page.locator('.cost-display')).toBeVisible();
   });
 
-  test('should have mode tabs', async ({ page }) => {
-    await expect(page.locator('.mode-tab.write')).toBeVisible();
-    await expect(page.locator('.mode-tab.memo')).toBeVisible();
-    await expect(page.locator('.mode-tab.view')).toBeVisible();
-    await expect(page.locator('.mode-tab.skill')).toBeVisible();
+  test('should have mode toggle button', async ({ page }) => {
+    await expect(page.locator('.mode-button')).toBeVisible();
+    await expect(page.locator('.mode-button')).toContainText('書込モード');
   });
 
-  test('should switch between modes', async ({ page }) => {
+  test('should toggle between write and memo modes', async ({ page }) => {
     // デフォルトは書込モード
-    await expect(page.locator('.mode-tab.write')).toHaveClass(/active/);
+    await expect(page.locator('.mode-button')).toContainText('書込モード');
+    await expect(page.locator('.mode-button')).toHaveClass(/write/);
 
     // メモモードに切り替え
-    await page.locator('.mode-tab.memo').click();
-    await expect(page.locator('.mode-tab.memo')).toHaveClass(/active/);
-    await expect(page.locator('.mode-tab.write')).not.toHaveClass(/active/);
+    await page.locator('.mode-button').click();
+    await expect(page.locator('.mode-button')).toContainText('メモモード');
+    await expect(page.locator('.mode-button')).toHaveClass(/memo/);
 
-    // ビューモードに切り替え
-    await page.locator('.mode-tab.view').click();
-    await expect(page.locator('.mode-tab.view')).toHaveClass(/active/);
-    await expect(page.locator('.mode-tab.memo')).not.toHaveClass(/active/);
-
-    // スキルモードに切り替え
-    await page.locator('.mode-tab.skill').click();
-    await expect(page.locator('.mode-tab.skill')).toHaveClass(/active/);
-    await expect(page.locator('.mode-tab.view')).not.toHaveClass(/active/);
+    // 書込モードに戻す
+    await page.locator('.mode-button').click();
+    await expect(page.locator('.mode-button')).toContainText('書込モード');
+    await expect(page.locator('.mode-button')).toHaveClass(/write/);
   });
 
-  test('should show number panel in write mode', async ({ page }) => {
+  test('should show number panel with skill buttons', async ({ page }) => {
     await expect(page.locator('.number-panel')).toBeVisible();
-  });
-
-  test('should not show number panel in view mode', async ({ page }) => {
-    await page.locator('.mode-tab.view').click();
-    await expect(page.locator('.number-panel')).not.toBeVisible();
-  });
-
-  test('should show skill panel in skill mode', async ({ page }) => {
-    await page.locator('.mode-tab.skill').click();
-    await expect(page.locator('.skill-panel')).toBeVisible();
+    // 数字ボタン1-9 + Delボタン + スキルボタン3つ = 13ボタン
+    await expect(page.locator('.number-btn')).toHaveCount(10);
     await expect(page.locator('.skill-btn')).toHaveCount(3);
   });
 
@@ -236,19 +222,6 @@ test.describe('Sudoku App', () => {
 
   test('should check solution and show message', async ({ page }) => {
     // チェックボタンをクリックする前に、数字パネル等のオーバーレイが
-    // コントロールを遮っていないことを確認して閉じる
-    const numberPanel = page.locator('.number-panel');
-    if (await numberPanel.isVisible()) {
-      // まずはページ外をクリックして選択を解除してみる
-      await page.locator('body').click();
-      await page.waitForTimeout(100);
-      // まだ表示されている場合はビューに切り替えて確実に非表示にする
-      if (await numberPanel.isVisible()) {
-        await page.locator('.mode-tab.view').click();
-        await page.waitForTimeout(100);
-      }
-    }
-
     // チェックボタンをクリック
     await page.locator('.btn').filter({ hasText: 'チェック' }).click();
 

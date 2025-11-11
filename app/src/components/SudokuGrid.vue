@@ -14,14 +14,11 @@
     <!-- 盤面 -->
     <SudokuBoard />
 
-    <!-- モード切り替えタブ -->
+    <!-- モード切り替えボタン -->
     <ModeSelector />
 
-    <!-- 数字パッド -->
+    <!-- 数字パッド（スキルボタン含む） -->
     <NumberPad />
-
-    <!-- スキル一覧 -->
-    <SkillPanel />
 
     <!-- コントロールボタン -->
     <GameControls />
@@ -37,7 +34,6 @@ import { useSudokuStore } from '@/stores/sudoku'
 import SudokuBoard from './SudokuBoard.vue'
 import ModeSelector from './ModeSelector.vue'
 import NumberPad from './NumberPad.vue'
-import SkillPanel from './SkillPanel.vue'
 import GameControls from './GameControls.vue'
 
 const store = useSudokuStore()

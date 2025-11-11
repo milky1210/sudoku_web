@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.currentMode === 'skill'" class="skill-panel">
+  <div v-if="false" class="skill-panel">
     <h3>スキル一覧</h3>
     <button
       v-for="skill in store.skills"

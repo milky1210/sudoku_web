@@ -1,5 +1,5 @@
 <template>
-  <div v-if="store.currentMode !== 'view'" class="number-panel">
+  <div class="number-panel">
     <button
       v-for="num in 9"
       :key="num"
@@ -73,8 +73,6 @@ const store = useSudokuStore()
   border-color: #bbb;
 }
 
-/* Prevent disabled buttons inside overlays from intercepting pointer events
-   so underlying controls (e.g. footer buttons) can still receive clicks. */
 .number-panel .number-btn:disabled {
   pointer-events: none;
 }

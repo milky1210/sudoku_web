@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-export type Mode = 'write' | 'memo' | 'view' | 'skill'
+export type Mode = 'write' | 'memo'
 
 export interface Cell {
   value: number | null
@@ -40,7 +40,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     {
       id: 'auto89',
       name: '残り1マス埋め',
-      cost: 1,
+      cost: 0,
       description: '8個埋まっている行・列・ブロックの残り1マスを自動入力'
     },
     {
@@ -257,7 +257,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
     }
 
     // 空のセルの場合
-    if (currentMode.value === 'view') return
     selectedCell.value = index
   }
 
@@ -292,11 +291,9 @@ export const useSudokuStore = defineStore('sudoku', () => {
       if (selectedCell.value === -1) return
       toggleMemoInCell(num)
       saveHistory()
-    } else if (currentMode.value === 'view') {
-      selectedNumber.value = num
-    } else if (currentMode.value === 'skill') {
-      selectedNumber.value = num
     }
+    // 数字選択状態を更新
+    selectedNumber.value = num
   }
 
   const clearCell = (): void => {
