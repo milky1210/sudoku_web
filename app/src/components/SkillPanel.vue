@@ -5,7 +5,7 @@
       v-for="skill in store.skills"
       :key="skill.id"
       @click="store.useSkill(skill.id)"
-      :disabled="skill.cost > store.cost || store.selectedNumber === null"
+      :disabled="isSkillDisabled(skill)"
       class="skill-btn"
     >
       <span class="skill-name">{{ skill.name }}</span>
@@ -17,8 +17,29 @@
 
 <script setup lang="ts">
 import { useSudokuStore } from '@/stores/sudoku'
+import type { Skill } from '@/stores/sudoku'
 
 const store = useSudokuStore()
+
+const isSkillDisabled = (skill: Skill): boolean => {
+  // コストが足りない場合は無効
+  if (skill.cost > store.cost) return true
+
+  // スキルごとの条件チェック
+  switch (skill.id) {
+    case 'auto89':
+      // 残り1マスの箇所がない場合は無効
+      return !store.hasOneCellGap
+    case 'autoSingle':
+      // 特に条件なし（常にアクティブ）
+      return false
+    case 'memoN':
+      // 数字が選択されていない場合は無効
+      return store.selectedNumber === null
+    default:
+      return false
+  }
+}
 </script>
 
 <style scoped>

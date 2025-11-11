@@ -77,6 +77,25 @@ const store = useSudokuStore()
   background-color: #fff3cd;
 }
 
+.cell.skill-filled {
+  background-color: #a7ffeb;
+  animation: skill-fill-pulse 1s ease-in-out;
+}
+
+@keyframes skill-fill-pulse {
+  0% {
+    background-color: #00e676;
+    transform: scale(1.1);
+  }
+  50% {
+    background-color: #69f0ae;
+  }
+  100% {
+    background-color: #a7ffeb;
+    transform: scale(1);
+  }
+}
+
 .cell.invalid-placement {
   background-color: #ffe0e0;
 }

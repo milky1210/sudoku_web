@@ -8,6 +8,7 @@ export interface Cell {
   fixed: boolean
   error: boolean
   memos: number[]
+  highlight: boolean
 }
 
 export interface HistoryEntry {
@@ -38,9 +39,9 @@ export const useSudokuStore = defineStore('sudoku', () => {
   const skills: Skill[] = [
     {
       id: 'auto89',
-      name: '8/9マス自動埋め',
+      name: '残り1マス埋め',
       cost: 1,
-      description: '行・列・ブロックで8または9マス埋まっている箇所を自動入力'
+      description: '8個埋まっている行・列・ブロックの残り1マスを自動入力'
     },
     {
       id: 'autoSingle',
@@ -78,6 +79,48 @@ export const useSudokuStore = defineStore('sudoku', () => {
   const isNumberComplete = (num: number): boolean => {
     return numberCounts.value[num] >= 9
   }
+
+  // 残り1マスの箇所があるかチェック（8/9マススキル用）
+  const hasOneCellGap = computed(() => {
+    const board = gridToBoard()
+
+    // 各行をチェック
+    for (let i = 0; i < 9; i++) {
+      const rowCells = []
+      for (let j = 0; j < 9; j++) {
+        if (board[i][j] === 0) rowCells.push(i * 9 + j)
+      }
+      if (rowCells.length === 1) return true
+    }
+
+    // 各列をチェック
+    for (let i = 0; i < 9; i++) {
+      const colCells = []
+      for (let j = 0; j < 9; j++) {
+        if (board[j][i] === 0) colCells.push(j * 9 + i)
+      }
+      if (colCells.length === 1) return true
+    }
+
+    // 各ブロックをチェック
+    for (let blockRow = 0; blockRow < 3; blockRow++) {
+      for (let blockCol = 0; blockCol < 3; blockCol++) {
+        const blockCells = []
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            const row = blockRow * 3 + i
+            const col = blockCol * 3 + j
+            if (board[row][col] === 0) {
+              blockCells.push(row * 9 + col)
+            }
+          }
+        }
+        if (blockCells.length === 1) return true
+      }
+    }
+
+    return false
+  })
 
   // Utility functions
   const isValid = (board: number[][], row: number, col: number, num: number): boolean => {
@@ -167,7 +210,8 @@ export const useSudokuStore = defineStore('sudoku', () => {
           value: board[i][j] || null,
           fixed: board[i][j] !== 0,
           error: false,
-          memos: []
+          memos: [],
+          highlight: false
         })
       }
     }
@@ -301,22 +345,31 @@ export const useSudokuStore = defineStore('sudoku', () => {
 
   const executeAuto89 = (): void => {
     const board = gridToBoard()
-    let filled = false
 
-    // 各行・列・ブロックをチェック
+    // 残り1マスの箇所を探して、最初の1つだけを埋める
+    // 行チェック
     for (let i = 0; i < 9; i++) {
-      // 行チェック
       const rowCells = []
       for (let j = 0; j < 9; j++) {
         if (board[i][j] === 0) rowCells.push(i * 9 + j)
       }
       if (rowCells.length === 1) {
         const missingNum = findMissingNumber(board[i])
-        grid.value[rowCells[0]].value = missingNum
-        filled = true
+        const cellIndex = rowCells[0]
+        grid.value[cellIndex].value = missingNum
+        grid.value[cellIndex].memos = []
+        grid.value[cellIndex].highlight = true
+        setTimeout(() => {
+          grid.value[cellIndex].highlight = false
+        }, 1000)
+        message.value = '残り1マスを埋めました'
+        messageType.value = 'success'
+        return
       }
+    }
 
-      // 列チェック
+    // 列チェック
+    for (let i = 0; i < 9; i++) {
       const colCells = []
       const col = []
       for (let j = 0; j < 9; j++) {
@@ -325,12 +378,20 @@ export const useSudokuStore = defineStore('sudoku', () => {
       }
       if (colCells.length === 1) {
         const missingNum = findMissingNumber(col)
-        grid.value[colCells[0]].value = missingNum
-        filled = true
+        const cellIndex = colCells[0]
+        grid.value[cellIndex].value = missingNum
+        grid.value[cellIndex].memos = []
+        grid.value[cellIndex].highlight = true
+        setTimeout(() => {
+          grid.value[cellIndex].highlight = false
+        }, 1000)
+        message.value = '残り1マスを埋めました'
+        messageType.value = 'success'
+        return
       }
     }
 
-    // 各ブロックチェック
+    // ブロックチェック
     for (let blockRow = 0; blockRow < 3; blockRow++) {
       for (let blockCol = 0; blockCol < 3; blockCol++) {
         const blockCells = []
@@ -347,19 +408,23 @@ export const useSudokuStore = defineStore('sudoku', () => {
         }
         if (blockCells.length === 1) {
           const missingNum = findMissingNumber(block)
-          grid.value[blockCells[0]].value = missingNum
-          filled = true
+          const cellIndex = blockCells[0]
+          grid.value[cellIndex].value = missingNum
+          grid.value[cellIndex].memos = []
+          grid.value[cellIndex].highlight = true
+          setTimeout(() => {
+            grid.value[cellIndex].highlight = false
+          }, 1000)
+          message.value = '残り1マスを埋めました'
+          messageType.value = 'success'
+          return
         }
       }
     }
 
-    if (filled) {
-      message.value = '8/9マス自動埋めを実行しました'
-      messageType.value = 'success'
-    } else {
-      message.value = '該当するマスがありません'
-      messageType.value = 'error'
-    }
+    // 該当なし
+    message.value = '残り1マスの箇所がありません'
+    messageType.value = 'error'
   }
 
   const executeAutoSingle = (): void => {
@@ -418,10 +483,11 @@ export const useSudokuStore = defineStore('sudoku', () => {
   }
 
   const useSkill = (skillId: string): void => {
-    if (selectedNumber.value === null) return
-
     const skill = skills.find((s) => s.id === skillId)
     if (!skill || skill.cost > cost.value) return
+
+    // スキルごとに必要な条件をチェック
+    if (skillId === 'memoN' && selectedNumber.value === null) return
 
     switch (skillId) {
       case 'auto89':
@@ -433,8 +499,10 @@ export const useSudokuStore = defineStore('sudoku', () => {
         cost.value -= skill.cost
         break
       case 'memoN':
-        executeMemoN(selectedNumber.value)
-        cost.value -= skill.cost
+        if (selectedNumber.value !== null) {
+          executeMemoN(selectedNumber.value)
+          cost.value -= skill.cost
+        }
         break
     }
 
@@ -449,6 +517,11 @@ export const useSudokuStore = defineStore('sudoku', () => {
     if ((col + 1) % 3 === 0 && col !== 8) classes.push('right-border')
     if ((row + 1) % 3 === 0 && row !== 8) classes.push('bottom-border')
     if (selectedCell.value === index) classes.push('selected')
+
+    // スキルで埋めたセルのアニメーション
+    if (grid.value[index].highlight) {
+      classes.push('skill-filled')
+    }
 
     // 選択された数字と同じ数字をハイライト
     if (selectedNumber.value !== null && grid.value[index].value === selectedNumber.value) {
@@ -555,6 +628,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     canRedo,
     numberCounts,
     isNumberComplete,
+    hasOneCellGap,
     // Actions
     setMode,
     selectCell,
