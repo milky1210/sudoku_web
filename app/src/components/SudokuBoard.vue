@@ -77,6 +77,10 @@ const store = useSudokuStore()
   background-color: #fff3cd;
 }
 
+.cell.invalid-placement {
+  background-color: #ffe0e0;
+}
+
 .fixed-value {
   font-size: clamp(16px, 4vw, 20px);
   font-weight: bold;

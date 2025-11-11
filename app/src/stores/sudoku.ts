@@ -37,12 +37,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
 
   const skills: Skill[] = [
     {
-      id: 'highlight',
-      name: '置けない場所ハイライト',
-      cost: 0,
-      description: '選択した数字が置けない場所を表示'
-    },
-    {
       id: 'auto89',
       name: '8/9マス自動埋め',
       cost: 1,
@@ -190,7 +184,16 @@ export const useSudokuStore = defineStore('sudoku', () => {
   }
 
   const selectCell = (index: number): void => {
-    if (grid.value[index].fixed) return
+    // 数字が入っているセル（固定セルまたは入力済みセル）をクリックした場合
+    const clickedCell = grid.value[index]
+    if (clickedCell.value !== null) {
+      // その数字を選択状態にする
+      selectedNumber.value = clickedCell.value
+      selectedCell.value = -1
+      return
+    }
+
+    // 空のセルの場合
     if (currentMode.value === 'view') return
     selectedCell.value = index
   }
@@ -402,9 +405,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
     if (!skill || skill.cost > cost.value) return
 
     switch (skillId) {
-      case 'highlight':
-        // ハイライトは状態変更なしで視覚効果のみ
-        break
       case 'auto89':
         executeAuto89()
         cost.value -= skill.cost
@@ -431,21 +431,18 @@ export const useSudokuStore = defineStore('sudoku', () => {
     if ((row + 1) % 3 === 0 && row !== 8) classes.push('bottom-border')
     if (selectedCell.value === index) classes.push('selected')
 
-    // ビューモード: 選択された数字と同じ数字をハイライト
-    if (currentMode.value === 'view' && selectedNumber.value !== null) {
-      if (grid.value[index].value === selectedNumber.value) {
-        classes.push('highlighted')
-      }
+    // 選択された数字と同じ数字をハイライト
+    if (selectedNumber.value !== null && grid.value[index].value === selectedNumber.value) {
+      classes.push('highlighted')
     }
 
-    // スキルモード: ハイライトスキル使用時
-    if (currentMode.value === 'skill' && selectedNumber.value !== null) {
+    // 選択された数字が置けないセルをハイライト（赤）
+    // 空のセルまたは既に数字が入っているセル両方をチェック
+    if (selectedNumber.value !== null) {
       const board = gridToBoard()
       board[row][col] = 0
       if (!isValid(board, row, col, selectedNumber.value)) {
         classes.push('invalid-placement')
-      } else if (!grid.value[index].fixed && !grid.value[index].value) {
-        classes.push('valid-placement')
       }
     }
 
