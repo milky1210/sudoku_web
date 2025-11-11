@@ -19,6 +19,9 @@ export default defineConfig({
     // bind to all interfaces in container
     host: true,
     port: Number(process.env.VITE_PORT) || 5173,
+    watch: {
+      usePolling: true,
+    },
     // HMR config: allow client to connect back to host IP when running in Docker
     hmr: {
       host: process.env.VITE_HMR_HOST || process.env.HOST || 'localhost',
