@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { puzzleService } from '@/services/puzzleService'
+import type { PuzzleData } from '@/types/puzzle'
 
 export type Mode = 'write' | 'memo'
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert'
 
 export interface Cell {
   value: number | null
@@ -35,6 +38,9 @@ export const useSudokuStore = defineStore('sudoku', () => {
   const maxCost = ref<number>(5)
   const history = ref<HistoryEntry[]>([])
   const historyIndex = ref<number>(-1)
+  const currentDifficulty = ref<Difficulty | null>(null)
+  const currentPuzzle = ref<PuzzleData | null>(null)
+  const gameState = ref<'difficulty-select' | 'playing'>('difficulty-select')
 
   const skills: Skill[] = [
     {
@@ -556,6 +562,41 @@ export const useSudokuStore = defineStore('sudoku', () => {
     return classes.join(' ')
   }
 
+  const startGameWithDifficulty = async (difficulty: Difficulty): Promise<void> => {
+    try {
+      await puzzleService.loadPuzzles()
+      const puzzle = puzzleService.getRandomPuzzle(difficulty)
+      
+      if (!puzzle) {
+        throw new Error(`No puzzles found for difficulty: ${difficulty}`)
+      }
+      
+      currentDifficulty.value = difficulty
+      currentPuzzle.value = puzzle
+      grid.value = boardToGrid(puzzle.puzzle)
+      selectedCell.value = -1
+      selectedNumber.value = null
+      message.value = ''
+      messageType.value = ''
+      cost.value = maxCost.value
+      history.value = []
+      historyIndex.value = -1
+      gameState.value = 'playing'
+      saveHistory()
+    } catch (error) {
+      console.error('Failed to start game:', error)
+      message.value = 'パズルの読み込みに失敗しました'
+      messageType.value = 'error'
+    }
+  }
+
+  const showDifficultySelect = (): void => {
+    gameState.value = 'difficulty-select'
+    grid.value = []
+    currentDifficulty.value = null
+    currentPuzzle.value = null
+  }
+
   const newGame = (): void => {
     const puzzle = generatePuzzle(40)
     grid.value = boardToGrid(puzzle)
@@ -621,6 +662,10 @@ export const useSudokuStore = defineStore('sudoku', () => {
     } else if (isComplete) {
       message.value = '正解です！おめでとう！'
       messageType.value = 'success'
+      // 完了後に難易度選択画面に戻る（3秒後）
+      setTimeout(() => {
+        showDifficultySelect()
+      }, 3000)
     } else {
       message.value = 'ここまで正解です'
       messageType.value = 'success'
@@ -638,6 +683,9 @@ export const useSudokuStore = defineStore('sudoku', () => {
     cost,
     maxCost,
     skills,
+    currentDifficulty,
+    currentPuzzle,
+    gameState,
     // Computed
     canUndo,
     canRedo,
@@ -654,6 +702,8 @@ export const useSudokuStore = defineStore('sudoku', () => {
     useSkill,
     getCellClass,
     newGame,
+    startGameWithDifficulty,
+    showDifficultySelect,
     resetGame,
     checkSolution
   }

@@ -1,10 +1,61 @@
 import { test, expect } from '@playwright/test';
 
+test.describe('Difficulty Selection', () => {
+  test('should show difficulty selection on initial load', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    
+    // 難易度選択画面が表示されることを確認
+    await expect(page.locator('h1')).toContainText('数独');
+    await expect(page.locator('text=難易度を選択してください')).toBeVisible();
+    
+    // 4つの難易度ボタンが表示されることを確認
+    await expect(page.getByRole('button', { name: /簡単/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /普通/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /難しい/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /超難関/ })).toBeVisible();
+  });
+
+  test('should start game when difficulty is selected', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    
+    // 簡単を選択
+    await page.getByRole('button', { name: /簡単/ }).click();
+    
+    // ゲーム画面に遷移することを確認
+    await expect(page.locator('.sudoku-grid')).toBeVisible();
+    await expect(page.locator('text=簡単')).toBeVisible();
+  });
+
+  test('should return to difficulty selection when button is clicked', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    
+    // 難易度を選択してゲーム開始
+    await page.getByRole('button', { name: /簡単/ }).click();
+    await page.locator('.sudoku-grid').waitFor({ state: 'visible' });
+    
+    // 難易度変更ボタンをクリック
+    await page.getByRole('button', { name: '難易度変更' }).click();
+    
+    // 難易度選択画面に戻ることを確認
+    await expect(page.locator('text=難易度を選択してください')).toBeVisible();
+  });
+});
+
 test.describe('Sudoku App', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // ページが完全に読み込まれ、Vueコンポーネントが初期化されるまで待つ
     await page.waitForLoadState('networkidle');
+    
+    // 難易度選択画面が表示されるまで待つ
+    await page.locator('text=難易度を選択してください').waitFor({ state: 'visible' });
+    
+    // 簡単を選択
+    await page.getByRole('button', { name: /簡単/ }).click();
+    
     // 数独グリッドが生成されるまで追加で待つ
     await page.locator('.sudoku-grid').waitFor({ state: 'visible' });
     await page.waitForTimeout(300);
