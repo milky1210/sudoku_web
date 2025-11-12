@@ -20,7 +20,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
   // State
   const level = ref<number>(1)
   const experience = ref<number>(0)
-  const selectedSkills = ref<string[]>(['auto89', 'autoSingle', 'memoN', ''])
+  const selectedSkills = ref<string[]>(['fill8', 'possible1', 'memoN', 'save'])
 
   // Computed
   const maxEnergy = computed(() => {
@@ -100,7 +100,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
         const profile: UserProfile = JSON.parse(stored)
         level.value = profile.level || 1
         experience.value = profile.experience || 0
-        selectedSkills.value = profile.selectedSkills || ['auto89', 'autoSingle', 'memoN', '']
+        selectedSkills.value = profile.selectedSkills || ['fill8', 'possible1', 'memoN', 'save']
       }
     } catch (error) {
       console.error('Failed to load user profile:', error)
@@ -123,7 +123,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
   const resetProfile = (): void => {
     level.value = 1
     experience.value = 0
-    selectedSkills.value = ['auto89', 'autoSingle', 'memoN', '']
+    selectedSkills.value = ['fill8', 'possible1', 'memoN', 'save']
     highlightMode.value = 'invalid'
     saveProfile()
   }
