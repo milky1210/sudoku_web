@@ -1,36 +1,51 @@
 <template>
   <div class="sudoku-container">
-    <!-- ヘッダー -->
-    <div class="header">
-      <h1>数独</h1>
-      <div class="cost-display">
-        コスト:
-        <span v-for="i in store.maxCost" :key="i" class="cost-dot" :class="{ filled: i <= store.cost }">
-          ●
-        </span>
+    <!-- 難易度選択画面 -->
+    <DifficultySelector
+      v-if="store.gameState === 'difficulty-select'"
+      @select="handleDifficultySelect"
+    />
+
+    <!-- ゲーム画面 -->
+    <template v-else>
+      <!-- ヘッダー -->
+      <div class="header">
+        <h1>数独</h1>
+        <div class="cost-display">
+          コスト:
+          <span v-for="i in store.maxCost" :key="i" class="cost-dot" :class="{ filled: i <= store.cost }">
+            ●
+          </span>
+        </div>
       </div>
-    </div>
 
-    <!-- 盤面 -->
-    <SudokuBoard />
+      <!-- 難易度表示 -->
+      <div v-if="store.currentDifficulty" class="difficulty-badge">
+        {{ difficultyNames[store.currentDifficulty] }}
+      </div>
 
-    <!-- モード切り替えボタン -->
-    <ModeSelector />
+      <!-- 盤面 -->
+      <SudokuBoard />
 
-    <!-- 数字パッド（スキルボタン含む） -->
-    <NumberPad />
+      <!-- モード切り替えボタン -->
+      <ModeSelector />
 
-    <!-- コントロールボタン -->
-    <GameControls />
+      <!-- 数字パッド（スキルボタン含む） -->
+      <NumberPad />
 
-    <!-- メッセージ -->
-    <div v-if="store.message" :class="['message', store.messageType]">{{ store.message }}</div>
+      <!-- コントロールボタン -->
+      <GameControls />
+
+      <!-- メッセージ -->
+      <div v-if="store.message" :class="['message', store.messageType]">{{ store.message }}</div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useSudokuStore } from '@/stores/sudoku'
+import type { Difficulty } from '@/stores/sudoku'
+import DifficultySelector from './DifficultySelector.vue'
 import SudokuBoard from './SudokuBoard.vue'
 import ModeSelector from './ModeSelector.vue'
 import NumberPad from './NumberPad.vue'
@@ -38,9 +53,17 @@ import GameControls from './GameControls.vue'
 
 const store = useSudokuStore()
 
-onMounted(() => {
-  store.newGame()
-})
+const difficultyNames: Record<Difficulty, string> = {
+  easy: '簡単',
+  medium: '普通',
+  hard: '難しい',
+  expert: '超難関'
+}
+
+const handleDifficultySelect = async (difficulty: Difficulty): Promise<void> => {
+  await store.startGameWithDifficulty(difficulty)
+}
+
 </script>
 
 <style scoped>
@@ -84,6 +107,16 @@ h1 {
 
 .cost-dot.filled {
   color: #f39c12;
+}
+
+.difficulty-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 12px;
 }
 
 .message {

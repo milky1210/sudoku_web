@@ -14,3 +14,12 @@ services:
     environment:
       - VITE_HMR_HOST=localhost
       - CHOKIDAR_USEPOLLING=true
+  
+  puzzle-generator:
+    build:
+      context: ./puzzle_generator
+      dockerfile: Dockerfile
+    volumes:
+      - ./app/public/puzzles:/output
+    profiles:
+      - generator
