@@ -138,34 +138,69 @@ sudoku_web/
 ├── app/                    # Vue.jsアプリケーション
 │   ├── src/
 │   │   ├── components/     # Vueコンポーネント
-│   │   ├── assets/         # 静的アセット
-│   │   └── ...
+│   │   ├── services/       # サービス層（パズル読み込み等）
+│   │   ├── stores/         # Pinia状態管理
+│   │   ├── types/          # TypeScript型定義
+│   │   └── assets/         # 静的アセット
+│   ├── public/
+│   │   └── puzzles/        # 生成済みパズルデータ
 │   ├── tests/              # E2Eテスト
-│   ├── package.json
-│   └── ...
+│   └── package.json
+├── puzzle_generator/       # Pythonパズル生成器
+│   ├── Dockerfile
+│   ├── generate_fast.py    # 高速パズル生成スクリプト
+│   ├── generate_puzzles.py # 完全版パズル生成スクリプト
+│   ├── requirements.txt
+│   └── README.md
 ├── docker/                 # Docker設定
 │   ├── Dockerfile          # 開発用Dockerfile
 │   └── Dockerfile.ci       # CI用Dockerfile
-├── docker-compose.yaml     # Docker Compose設定（存在する場合）
+├── docker-compose.yaml     # Docker Compose設定
 ├── docker-install-lock.ps1 # npm installスクリプト
 ├── run-ci.ps1              # CI実行スクリプト
 ├── run-lint.ps1            # Lint実行スクリプト
 └── .github/workflows/      # GitHub Actionsワークフロー
 ```
 
+## パズル生成
+
+新しいパズルを生成する場合:
+
+```bash
+# Dockerを使用
+docker compose --profile generator up puzzle-generator
+
+# ローカル実行
+cd puzzle_generator
+pip install -r requirements.txt
+python -c "from generate_fast import generate_puzzle_database; generate_puzzle_database('../app/public/puzzles')"
+```
+
+詳細は [puzzle_generator/README.md](puzzle_generator/README.md) を参照してください。
+```
+
 ## 機能
 
+- **難易度選択**: 4段階の難易度（簡単・普通・難しい・超難関）から選択可能
+- **事前生成パズル**: Python生成器で作成された高品質なパズル（60問収録）
 - 数独パズルの生成と解決
+- **スキルシステム**: コストを消費して使用できる便利機能
+  - 残り1マス埋め
+  - 候補1つの自動入力
+  - 候補nメモ
 - メモ機能
 - 解答チェック
+- Undo/Redo機能
 - レスポンシブデザイン（モバイル対応）
 - 新規ゲーム生成
 - ゲームリセット
+- 難易度変更
 
 ## 技術スタック
 
 - **Frontend**: Vue 3 + TypeScript
 - **Build Tool**: Vite
+- **Puzzle Generator**: Python 3.11
 - **Testing**: Playwright (E2E), Vitest (Unit)
 - **Linting**: ESLint, Oxlint
 - **Container**: Docker, Dev Containers
