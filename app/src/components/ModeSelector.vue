@@ -14,12 +14,12 @@
       v-for="skill in store.skills"
       :key="skill.id"
       @click="handleSkillClick(skill.id)"
+      @touchstart.prevent="handleTouchStart(skill)"
+      @touchend.prevent="handleTouchEnd(skill.id)"
+      @touchcancel="cancelLongPress"
       @mousedown="startLongPress(skill)"
       @mouseup="cancelLongPress"
       @mouseleave="cancelLongPress"
-      @touchstart.prevent="startLongPress(skill)"
-      @touchend="cancelLongPress"
-      @touchcancel="cancelLongPress"
       :disabled="isSkillDisabled(skill)"
       :class="['skill-btn', `skill-${skill.id}`]"
     >
@@ -129,8 +129,33 @@ const getSkillIcon = (skillId: string): string => {
 }
 
 const handleSkillClick = (skillId: string) => {
+  console.log('Skill clicked:', skillId)
   if (!showTooltip.value) {
+    console.log('Calling store.useSkill')
     store.useSkill(skillId)
+  } else {
+    console.log('Tooltip is showing, not calling skill')
+  }
+}
+
+const handleTouchStart = (skill: Skill) => {
+  console.log('Touch start:', skill.id)
+  startLongPress(skill)
+}
+
+const handleTouchEnd = (skillId: string) => {
+  console.log('Touch end:', skillId, 'showTooltip:', showTooltip.value)
+  if (longPressTimer !== null) {
+    // 長押しタイマーがまだ実行されていない = 短いタップ
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+    console.log('Short tap detected, executing skill')
+    store.useSkill(skillId)
+  } else if (showTooltip.value) {
+    // 長押しでツールチップが表示されている場合は閉じるだけ
+    console.log('Closing tooltip')
+    showTooltip.value = false
+    tooltipSkill.value = null
   }
 }
 
@@ -138,6 +163,8 @@ const startLongPress = (skill: Skill) => {
   longPressTimer = window.setTimeout(() => {
     tooltipSkill.value = skill
     showTooltip.value = true
+    longPressTimer = null
+    console.log('Long press detected, showing tooltip')
   }, 500) as unknown as number
 }
 

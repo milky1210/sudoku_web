@@ -46,7 +46,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     {
       id: 'autoSingle',
       name: '候補1つの自動入力',
-      cost: 2,
+      cost: 0,
       description: '候補が1つしかないセルを自動入力'
     },
     {
@@ -342,6 +342,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
   }
 
   const executeAuto89 = (): void => {
+    console.log('executeAuto89 called')
     const board = gridToBoard()
 
     // 残り1マスの箇所を探して、最初の1つだけを埋める
@@ -353,6 +354,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
       }
       if (rowCells.length === 1) {
         const missingNum = findMissingNumber(board[i])
+        console.log(`Found gap in row ${i}, cell ${rowCells[0]}, filling with ${missingNum}`)
         const cellIndex = rowCells[0]
         grid.value[cellIndex].value = missingNum
         grid.value[cellIndex].memos = []
@@ -376,6 +378,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
       }
       if (colCells.length === 1) {
         const missingNum = findMissingNumber(col)
+        console.log(`Found gap in col ${i}, cell ${colCells[0]}, filling with ${missingNum}`)
         const cellIndex = colCells[0]
         grid.value[cellIndex].value = missingNum
         grid.value[cellIndex].memos = []
@@ -406,6 +409,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
         }
         if (blockCells.length === 1) {
           const missingNum = findMissingNumber(block)
+          console.log(`Found gap in block (${blockRow},${blockCol}), cell ${blockCells[0]}, filling with ${missingNum}`)
           const cellIndex = blockCells[0]
           grid.value[cellIndex].value = missingNum
           grid.value[cellIndex].memos = []
@@ -421,6 +425,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     }
 
     // 該当なし
+    console.log('No one-cell gap found')
     message.value = '残り1マスの箇所がありません'
     messageType.value = 'error'
   }
@@ -481,12 +486,24 @@ export const useSudokuStore = defineStore('sudoku', () => {
   }
 
   const useSkill = (skillId: string): void => {
+    console.log('useSkill called with:', skillId)
     const skill = skills.find((s) => s.id === skillId)
-    if (!skill || skill.cost > cost.value) return
+    if (!skill) {
+      console.log('Skill not found')
+      return
+    }
+    if (skill.cost > cost.value) {
+      console.log('Not enough cost:', skill.cost, '>', cost.value)
+      return
+    }
 
     // スキルごとに必要な条件をチェック
-    if (skillId === 'memoN' && selectedNumber.value === null) return
+    if (skillId === 'memoN' && selectedNumber.value === null) {
+      console.log('memoN requires number selection')
+      return
+    }
 
+    console.log('Executing skill:', skillId)
     switch (skillId) {
       case 'auto89':
         executeAuto89()
