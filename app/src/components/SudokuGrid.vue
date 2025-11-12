@@ -24,8 +24,11 @@
       <div class="header">
         <h1>数独</h1>
         <div class="header-right">
-          <button @click="showSkillModal = true" class="skill-config-btn" title="スキル設定">
+          <button @click="showSettingsModal = true" class="icon-btn" title="設定">
             ⚙️
+          </button>
+          <button @click="showSkillModal = true" class="icon-btn" title="スキル選択">
+            📋
           </button>
           <div class="cost-display">
             コスト:
@@ -72,6 +75,12 @@
       @close="showSkillModal = false"
       @save="handleSkillSave"
     />
+
+    <!-- Settings modal -->
+    <SettingsModal
+      v-if="showSettingsModal"
+      @close="showSettingsModal = false"
+    />
   </div>
 </template>
 
@@ -87,11 +96,13 @@ import NumberPad from './NumberPad.vue'
 import GameControls from './GameControls.vue'
 import CompletionScreen from './CompletionScreen.vue'
 import SkillSelectionModal from './SkillSelectionModal.vue'
+import SettingsModal from './SettingsModal.vue'
 
 const store = useSudokuStore()
 const userProfile = useUserProfileStore()
 
 const showSkillModal = ref(false)
+const showSettingsModal = ref(false)
 const completionTime = ref(0)
 const earnedExp = ref(0)
 const oldLevel = ref(1)
@@ -194,6 +205,31 @@ watch(() => store.gameState, (newState) => {
 }
 
 .skill-config-btn:active {
+  transform: scale(0.95);
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #667eea;
+  background: white;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  background: #f8f9ff;
+  transform: scale(1.05);
+}
+
+.icon-btn:active {
   transform: scale(0.95);
 }
 
