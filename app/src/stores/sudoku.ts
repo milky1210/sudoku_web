@@ -2,6 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { puzzleService } from '@/services/puzzleService'
 import type { PuzzleData } from '@/types/puzzle'
+import { ALL_SKILLS, getSkillById } from '@/types/skills'
+import type { Skill } from '@/types/skills'
+import { useUserProfileStore } from './userProfile'
 
 export type Mode = 'write' | 'memo'
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert'
@@ -19,12 +22,7 @@ export interface HistoryEntry {
   cost: number
 }
 
-export interface Skill {
-  id: string
-  name: string
-  cost: number
-  description: string
-}
+export { type Skill } from '@/types/skills'
 
 export const useSudokuStore = defineStore('sudoku', () => {
   // State
@@ -40,28 +38,23 @@ export const useSudokuStore = defineStore('sudoku', () => {
   const historyIndex = ref<number>(-1)
   const currentDifficulty = ref<Difficulty | null>(null)
   const currentPuzzle = ref<PuzzleData | null>(null)
-  const gameState = ref<'difficulty-select' | 'playing'>('difficulty-select')
+  const gameState = ref<'difficulty-select' | 'playing' | 'completed'>('difficulty-select')
+  const startTime = ref<number>(0)
+  const savedGrid = ref<Cell[] | null>(null)
+  const hasSavedState = ref<boolean>(false)
 
-  const skills: Skill[] = [
-    {
-      id: 'auto89',
-      name: '残り1マス埋め',
-      cost: 0,
-      description: '8個埋まっている行・列・ブロックの残り1マスを自動入力'
-    },
-    {
-      id: 'autoSingle',
-      name: '候補1つの自動入力',
-      cost: 0,
-      description: '候補が1つしかないセルを自動入力'
-    },
-    {
-      id: 'memoN',
-      name: '候補nメモ',
-      cost: 1,
-      description: '選択した数字の候補を全セルにメモ'
-    }
-  ]
+  // Get user profile store
+  const userProfile = useUserProfileStore()
+
+  // All available skills
+  const allSkills = ALL_SKILLS
+
+  // Currently selected skills (from user profile)
+  const selectedSkills = computed(() => {
+    return userProfile.selectedSkills
+      .map((id) => getSkillById(id))
+      .filter((skill): skill is Skill => skill !== undefined)
+  })
 
   // Computed
   const canUndo = computed(() => historyIndex.value > 0)
@@ -347,11 +340,30 @@ export const useSudokuStore = defineStore('sudoku', () => {
     cost.value = state.cost
   }
 
-  const executeAuto89 = (): void => {
-    console.log('executeAuto89 called')
+  const executeMemoN = (num: number): void => {
+    grid.value.forEach((cell, index) => {
+      if (cell.fixed || cell.value) return
+
+      const row = Math.floor(index / 9)
+      const col = index % 9
+      const board = gridToBoard()
+      board[row][col] = 0
+
+      if (isValid(board, row, col, num)) {
+        if (!cell.memos.includes(num)) {
+          cell.memos.push(num)
+          cell.memos.sort()
+        }
+      }
+    })
+
+    message.value = `数字${num}の候補をメモしました`
+    messageType.value = 'success'
+  }
+
+  const executeFill8 = (): void => {
     const board = gridToBoard()
 
-    // 残り1マスの箇所を探して、最初の1つだけを埋める
     // 行チェック
     for (let i = 0; i < 9; i++) {
       const rowCells = []
@@ -360,7 +372,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
       }
       if (rowCells.length === 1) {
         const missingNum = findMissingNumber(board[i])
-        console.log(`Found gap in row ${i}, cell ${rowCells[0]}, filling with ${missingNum}`)
         const cellIndex = rowCells[0]
         grid.value[cellIndex].value = missingNum
         grid.value[cellIndex].memos = []
@@ -384,7 +395,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
       }
       if (colCells.length === 1) {
         const missingNum = findMissingNumber(col)
-        console.log(`Found gap in col ${i}, cell ${colCells[0]}, filling with ${missingNum}`)
         const cellIndex = colCells[0]
         grid.value[cellIndex].value = missingNum
         grid.value[cellIndex].memos = []
@@ -415,7 +425,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
         }
         if (blockCells.length === 1) {
           const missingNum = findMissingNumber(block)
-          console.log(`Found gap in block (${blockRow},${blockCol}), cell ${blockCells[0]}, filling with ${missingNum}`)
           const cellIndex = blockCells[0]
           grid.value[cellIndex].value = missingNum
           grid.value[cellIndex].memos = []
@@ -430,13 +439,132 @@ export const useSudokuStore = defineStore('sudoku', () => {
       }
     }
 
-    // 該当なし
-    console.log('No one-cell gap found')
     message.value = '残り1マスの箇所がありません'
     messageType.value = 'error'
   }
 
-  const executeAutoSingle = (): void => {
+  const executeFill8All = (): void => {
+    const board = gridToBoard()
+    let filled = false
+
+    // 行チェック
+    for (let i = 0; i < 9; i++) {
+      const rowCells = []
+      for (let j = 0; j < 9; j++) {
+        if (board[i][j] === 0) rowCells.push(i * 9 + j)
+      }
+      if (rowCells.length === 1) {
+        const missingNum = findMissingNumber(board[i])
+        const cellIndex = rowCells[0]
+        grid.value[cellIndex].value = missingNum
+        grid.value[cellIndex].memos = []
+        grid.value[cellIndex].highlight = true
+        setTimeout(() => {
+          grid.value[cellIndex].highlight = false
+        }, 1000)
+        filled = true
+      }
+    }
+
+    // 列チェック
+    for (let i = 0; i < 9; i++) {
+      const colCells = []
+      const col = []
+      for (let j = 0; j < 9; j++) {
+        col.push(board[j][i])
+        if (board[j][i] === 0) colCells.push(j * 9 + i)
+      }
+      if (colCells.length === 1) {
+        const missingNum = findMissingNumber(col)
+        const cellIndex = colCells[0]
+        grid.value[cellIndex].value = missingNum
+        grid.value[cellIndex].memos = []
+        grid.value[cellIndex].highlight = true
+        setTimeout(() => {
+          grid.value[cellIndex].highlight = false
+        }, 1000)
+        filled = true
+      }
+    }
+
+    // ブロックチェック
+    for (let blockRow = 0; blockRow < 3; blockRow++) {
+      for (let blockCol = 0; blockCol < 3; blockCol++) {
+        const blockCells = []
+        const block = []
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            const row = blockRow * 3 + i
+            const col = blockCol * 3 + j
+            block.push(board[row][col])
+            if (board[row][col] === 0) {
+              blockCells.push(row * 9 + col)
+            }
+          }
+        }
+        if (blockCells.length === 1) {
+          const missingNum = findMissingNumber(block)
+          const cellIndex = blockCells[0]
+          grid.value[cellIndex].value = missingNum
+          grid.value[cellIndex].memos = []
+          grid.value[cellIndex].highlight = true
+          setTimeout(() => {
+            grid.value[cellIndex].highlight = false
+          }, 1000)
+          filled = true
+        }
+      }
+    }
+
+    if (filled) {
+      message.value = '全ての残り1マスを埋めました'
+      messageType.value = 'success'
+    } else {
+      message.value = '残り1マスの箇所がありません'
+      messageType.value = 'error'
+    }
+  }
+
+  const executePossible1 = (): void => {
+    let filled = false
+
+    for (let index = 0; index < grid.value.length; index++) {
+      const cell = grid.value[index]
+      if (cell.fixed || cell.value) continue
+
+      const row = Math.floor(index / 9)
+      const col = index % 9
+      const candidates = []
+
+      for (let num = 1; num <= 9; num++) {
+        const board = gridToBoard()
+        board[row][col] = 0
+        if (isValid(board, row, col, num)) {
+          candidates.push(num)
+        }
+      }
+
+      if (candidates.length === 1) {
+        cell.value = candidates[0]
+        cell.memos = []
+        cell.highlight = true
+        setTimeout(() => {
+          cell.highlight = false
+        }, 1000)
+        filled = true
+        message.value = '候補1つのセルを自動入力しました'
+        messageType.value = 'success'
+        return
+      }
+    }
+
+    if (!filled) {
+      message.value = '該当するセルがありません'
+      messageType.value = 'error'
+    }
+  }
+
+  const executePossible1All = (): void => {
     let filled = false
 
     grid.value.forEach((cell, index) => {
@@ -457,12 +585,16 @@ export const useSudokuStore = defineStore('sudoku', () => {
       if (candidates.length === 1) {
         cell.value = candidates[0]
         cell.memos = []
+        cell.highlight = true
+        setTimeout(() => {
+          cell.highlight = false
+        }, 1000)
         filled = true
       }
     })
 
     if (filled) {
-      message.value = '候補1つのセルを自動入力しました'
+      message.value = '候補1つのセルを全て自動入力しました'
       messageType.value = 'success'
     } else {
       message.value = '該当するセルがありません'
@@ -470,7 +602,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     }
   }
 
-  const executeMemoN = (num: number): void => {
+  const executeMemoAll = (): void => {
     grid.value.forEach((cell, index) => {
       if (cell.fixed || cell.value) return
 
@@ -479,44 +611,259 @@ export const useSudokuStore = defineStore('sudoku', () => {
       const board = gridToBoard()
       board[row][col] = 0
 
-      if (isValid(board, row, col, num)) {
-        if (!cell.memos.includes(num)) {
+      cell.memos = []
+      for (let num = 1; num <= 9; num++) {
+        if (isValid(board, row, col, num)) {
           cell.memos.push(num)
-          cell.memos.sort()
         }
       }
     })
 
-    message.value = `数字${num}の候補をメモしました`
+    message.value = '全ての候補をメモしました'
     messageType.value = 'success'
+  }
+
+  const executeSave = (): void => {
+    savedGrid.value = JSON.parse(JSON.stringify(grid.value))
+    hasSavedState.value = true
+    message.value = '盤面を保存しました'
+    messageType.value = 'success'
+  }
+
+  const executeLoad = (): void => {
+    if (!savedGrid.value || !hasSavedState.value) {
+      message.value = '保存された盤面がありません'
+      messageType.value = 'error'
+      return
+    }
+
+    grid.value = JSON.parse(JSON.stringify(savedGrid.value))
+    hasSavedState.value = false
+    savedGrid.value = null
+    message.value = '保存した盤面を復元しました'
+    messageType.value = 'success'
+  }
+
+  const executeEsp = (): void => {
+    if (!currentPuzzle.value) {
+      message.value = 'エスパースキルはパズル実行中のみ使用可能です'
+      messageType.value = 'error'
+      return
+    }
+
+    // Find cells with 2+ candidates and pick the one with minimum candidates
+    let minCandidates = 10
+    let targetCells: { index: number; candidates: number[] }[] = []
+
+    grid.value.forEach((cell, index) => {
+      if (cell.fixed || cell.value) return
+
+      const row = Math.floor(index / 9)
+      const col = index % 9
+      const candidates = []
+
+      for (let num = 1; num <= 9; num++) {
+        const board = gridToBoard()
+        board[row][col] = 0
+        if (isValid(board, row, col, num)) {
+          candidates.push(num)
+        }
+      }
+
+      if (candidates.length >= 2) {
+        if (candidates.length < minCandidates) {
+          minCandidates = candidates.length
+          targetCells = [{ index, candidates }]
+        } else if (candidates.length === minCandidates) {
+          targetCells.push({ index, candidates })
+        }
+      }
+    })
+
+    if (targetCells.length === 0) {
+      message.value = '候補が2つ以上のセルがありません'
+      messageType.value = 'error'
+      return
+    }
+
+    // Pick random cell from targets
+    const target = targetCells[Math.floor(Math.random() * targetCells.length)]
+    const row = Math.floor(target.index / 9)
+    const col = target.index % 9
+    const correctAnswer = currentPuzzle.value.solution[row][col]
+
+    // ESP accuracy based on user level
+    const accuracy = userProfile.espAccuracy
+    const success = Math.random() * 100 < accuracy
+
+    if (success) {
+      grid.value[target.index].value = correctAnswer
+      grid.value[target.index].memos = []
+      grid.value[target.index].highlight = true
+      setTimeout(() => {
+        grid.value[target.index].highlight = false
+      }, 1000)
+      message.value = 'エスパーで正解を導きました！'
+      messageType.value = 'success'
+    } else {
+      // Pick a wrong answer
+      const wrongAnswers = target.candidates.filter((n) => n !== correctAnswer)
+      if (wrongAnswers.length > 0) {
+        const wrongAnswer = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)]
+        grid.value[target.index].value = wrongAnswer
+        grid.value[target.index].memos = []
+        grid.value[target.index].highlight = true
+        setTimeout(() => {
+          grid.value[target.index].highlight = false
+        }, 1000)
+        message.value = 'エスパーに失敗しました...'
+        messageType.value = 'error'
+      }
+    }
+  }
+
+  const executeHint = (): void => {
+    if (selectedCell.value === -1) {
+      message.value = 'セルを選択してください'
+      messageType.value = 'error'
+      return
+    }
+
+    if (!currentPuzzle.value) {
+      message.value = 'ヒントはパズル実行中のみ使用可能です'
+      messageType.value = 'error'
+      return
+    }
+
+    const cell = grid.value[selectedCell.value]
+    if (cell.fixed || cell.value) {
+      message.value = '既に入力されているセルです'
+      messageType.value = 'error'
+      return
+    }
+
+    const row = Math.floor(selectedCell.value / 9)
+    const col = selectedCell.value % 9
+    const correctAnswer = currentPuzzle.value.solution[row][col]
+
+    if (!cell.memos.includes(correctAnswer)) {
+      cell.memos.push(correctAnswer)
+      cell.memos.sort()
+    }
+
+    message.value = `ヒント: ${correctAnswer}をメモしました`
+    messageType.value = 'success'
+  }
+
+  const executeClear = (): void => {
+    if (selectedCell.value === -1) {
+      message.value = 'セルを選択してください'
+      messageType.value = 'error'
+      return
+    }
+
+    const cell = grid.value[selectedCell.value]
+    if (cell.fixed) {
+      message.value = '固定されたセルはクリアできません'
+      messageType.value = 'error'
+      return
+    }
+
+    cell.value = null
+    cell.memos = []
+    cell.error = false
+    message.value = 'セルをクリアしました'
+    messageType.value = 'success'
+  }
+
+  const executeNakedPair = (): void => {
+    let updated = false
+
+    // Check rows
+    for (let row = 0; row < 9; row++) {
+      const cells: { index: number; memos: number[] }[] = []
+      for (let col = 0; col < 9; col++) {
+        const index = row * 9 + col
+        const cell = grid.value[index]
+        if (!cell.fixed && !cell.value && cell.memos.length === 2) {
+          cells.push({ index, memos: [...cell.memos] })
+        }
+      }
+
+      // Find pairs
+      for (let i = 0; i < cells.length; i++) {
+        for (let j = i + 1; j < cells.length; j++) {
+          if (
+            cells[i].memos[0] === cells[j].memos[0] &&
+            cells[i].memos[1] === cells[j].memos[1]
+          ) {
+            // Found a naked pair, remove these candidates from other cells in the row
+            const pairNums = cells[i].memos
+            for (let col = 0; col < 9; col++) {
+              const index = row * 9 + col
+              if (index !== cells[i].index && index !== cells[j].index) {
+                const cell = grid.value[index]
+                if (!cell.fixed && !cell.value) {
+                  const before = cell.memos.length
+                  cell.memos = cell.memos.filter((m) => !pairNums.includes(m))
+                  if (cell.memos.length < before) updated = true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (updated) {
+      message.value = 'ネイキッドペアで候補を削除しました'
+      messageType.value = 'success'
+    } else {
+      message.value = 'ネイキッドペアが見つかりませんでした'
+      messageType.value = 'error'
+    }
   }
 
   const useSkill = (skillId: string): void => {
     console.log('useSkill called with:', skillId)
-    const skill = skills.find((s) => s.id === skillId)
+    const skill = getSkillById(skillId)
     if (!skill) {
       console.log('Skill not found')
       return
     }
     if (skill.cost > cost.value) {
       console.log('Not enough cost:', skill.cost, '>', cost.value)
+      message.value = 'コストが足りません'
+      messageType.value = 'error'
       return
     }
 
     // スキルごとに必要な条件をチェック
     if (skillId === 'memoN' && selectedNumber.value === null) {
       console.log('memoN requires number selection')
+      message.value = '数字を選択してください'
+      messageType.value = 'error'
       return
     }
 
     console.log('Executing skill:', skillId)
+    
+    // Execute skill based on ID
     switch (skillId) {
-      case 'auto89':
-        executeAuto89()
+      case 'fill8':
+        executeFill8()
         cost.value -= skill.cost
         break
-      case 'autoSingle':
-        executeAutoSingle()
+      case 'fill8All':
+        executeFill8All()
+        cost.value -= skill.cost
+        break
+      case 'possible1':
+        executePossible1()
+        cost.value -= skill.cost
+        break
+      case 'possible1All':
+        executePossible1All()
         cost.value -= skill.cost
         break
       case 'memoN':
@@ -525,6 +872,47 @@ export const useSudokuStore = defineStore('sudoku', () => {
           cost.value -= skill.cost
         }
         break
+      case 'memoAll':
+        executeMemoAll()
+        cost.value -= skill.cost
+        break
+      case 'save':
+        executeSave()
+        cost.value -= skill.cost
+        break
+      case 'load':
+        executeLoad()
+        cost.value -= skill.cost
+        break
+      case 'esp':
+        executeEsp()
+        cost.value -= skill.cost
+        break
+      case 'hint':
+        executeHint()
+        cost.value -= skill.cost
+        break
+      case 'clear':
+        executeClear()
+        cost.value -= skill.cost
+        break
+      case 'nakedPair':
+        executeNakedPair()
+        cost.value -= skill.cost
+        break
+      // Legacy skill IDs for backward compatibility
+      case 'auto89':
+        executeFill8()
+        cost.value -= skill.cost
+        break
+      case 'autoSingle':
+        executePossible1()
+        cost.value -= skill.cost
+        break
+      default:
+        message.value = '未実装のスキルです'
+        messageType.value = 'error'
+        return
     }
 
     saveHistory()
@@ -544,18 +932,28 @@ export const useSudokuStore = defineStore('sudoku', () => {
       classes.push('skill-filled')
     }
 
-    // 選択された数字と同じ数字をハイライト
-    if (selectedNumber.value !== null && grid.value[index].value === selectedNumber.value) {
-      classes.push('highlighted')
+    const highlightMode = userProfile.highlightMode
+
+    // Highlight mode: none - no highlighting
+    if (highlightMode === 'none') {
+      return classes.join(' ')
     }
 
-    // 選択された数字が置けないセルをハイライト（赤）
-    // 空のセルまたは既に数字が入っているセル両方をチェック
-    if (selectedNumber.value !== null) {
-      const board = gridToBoard()
-      board[row][col] = 0
-      if (!isValid(board, row, col, selectedNumber.value)) {
-        classes.push('invalid-placement')
+    // Highlight mode: number - highlight same numbers
+    if (highlightMode === 'number' || highlightMode === 'invalid') {
+      if (selectedNumber.value !== null && grid.value[index].value === selectedNumber.value) {
+        classes.push('highlighted')
+      }
+    }
+
+    // Highlight mode: invalid - highlight invalid placements (current behavior)
+    if (highlightMode === 'invalid') {
+      if (selectedNumber.value !== null) {
+        const board = gridToBoard()
+        board[row][col] = 0
+        if (!isValid(board, row, col, selectedNumber.value)) {
+          classes.push('invalid-placement')
+        }
       }
     }
 
@@ -578,10 +976,15 @@ export const useSudokuStore = defineStore('sudoku', () => {
       selectedNumber.value = null
       message.value = ''
       messageType.value = ''
+      // Use max energy from user profile
+      maxCost.value = userProfile.maxEnergy
       cost.value = maxCost.value
       history.value = []
       historyIndex.value = -1
       gameState.value = 'playing'
+      startTime.value = Date.now()
+      savedGrid.value = null
+      hasSavedState.value = false
       saveHistory()
     } catch (error) {
       console.error('Failed to start game:', error)
@@ -622,10 +1025,36 @@ export const useSudokuStore = defineStore('sudoku', () => {
     selectedNumber.value = null
     message.value = ''
     messageType.value = ''
+    maxCost.value = userProfile.maxEnergy
     cost.value = maxCost.value
     history.value = []
     historyIndex.value = -1
+    startTime.value = Date.now()
+    savedGrid.value = null
+    hasSavedState.value = false
     saveHistory()
+  }
+
+  const calculateExperience = (difficulty: Difficulty, timeMs: number): number => {
+    // Base experience by difficulty
+    const baseExp: Record<Difficulty, number> = {
+      easy: 50,
+      medium: 100,
+      hard: 200,
+      expert: 400
+    }
+
+    let exp = baseExp[difficulty]
+
+    // Time bonuses (in seconds)
+    const timeSec = Math.floor(timeMs / 1000)
+    if (timeSec <= 60) {
+      exp = Math.floor(exp * 1.5) // 50% bonus for under 1 minute
+    } else if (timeSec <= 180) {
+      exp = Math.floor(exp * 1.2) // 20% bonus for under 3 minutes
+    }
+
+    return exp
   }
 
   const checkSolution = (): void => {
@@ -660,12 +1089,17 @@ export const useSudokuStore = defineStore('sudoku', () => {
       message.value = '赤いマスに誤りがあります'
       messageType.value = 'error'
     } else if (isComplete) {
-      message.value = '正解です！おめでとう！'
+      // Calculate experience and time
+      const timeMs = Date.now() - startTime.value
+      const exp = calculateExperience(currentDifficulty.value || 'medium', timeMs)
+      const result = userProfile.addExperience(exp)
+      
+      gameState.value = 'completed'
+      message.value = `正解！ +${exp}経験値`
+      if (result.leveledUp) {
+        message.value += ` レベルアップ！ Lv.${result.newLevel}`
+      }
       messageType.value = 'success'
-      // 完了後に難易度選択画面に戻る（3秒後）
-      setTimeout(() => {
-        showDifficultySelect()
-      }, 3000)
     } else {
       message.value = 'ここまで正解です'
       messageType.value = 'success'
@@ -682,10 +1116,13 @@ export const useSudokuStore = defineStore('sudoku', () => {
     selectedNumber,
     cost,
     maxCost,
-    skills,
+    allSkills,
+    selectedSkills,
     currentDifficulty,
     currentPuzzle,
     gameState,
+    startTime,
+    hasSavedState,
     // Computed
     canUndo,
     canRedo,

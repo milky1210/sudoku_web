@@ -2,7 +2,7 @@
   <div v-if="false" class="skill-panel">
     <h3>スキル一覧</h3>
     <button
-      v-for="skill in store.skills"
+      v-for="skill in store.selectedSkills"
       :key="skill.id"
       @click="store.useSkill(skill.id)"
       :disabled="isSkillDisabled(skill)"
@@ -27,15 +27,22 @@ const isSkillDisabled = (skill: Skill): boolean => {
 
   // スキルごとの条件チェック
   switch (skill.id) {
+    case 'fill8':
     case 'auto89':
       // 残り1マスの箇所がない場合は無効
       return !store.hasOneCellGap
+    case 'possible1':
     case 'autoSingle':
       // 特に条件なし（常にアクティブ）
       return false
     case 'memoN':
       // 数字が選択されていない場合は無効
       return store.selectedNumber === null
+    case 'hint':
+    case 'clear':
+      return store.selectedCell === -1
+    case 'load':
+      return !store.hasSavedState
     default:
       return false
   }
