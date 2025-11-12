@@ -29,6 +29,18 @@ def generate_many(output_dir: str, total_count: int = 4000):
         print(f"Generating {count} puzzles for difficulty {difficulty}...")
         for i in range(count):
             puzzle, solution = generator.generate_puzzle(difficulty)
+
+            # verify uniqueness just in case; stop if any puzzle is not unique
+            sols = generator.count_solutions(puzzle, limit=2)
+            if sols != 1:
+                print(f"Error: Generated puzzle {difficulty}_{i+1:04d} has {sols} solutions. Stopping generation.")
+                # write partial file so far
+                os.makedirs(output_dir, exist_ok=True)
+                output_path = os.path.join(output_dir, 'puzzles.json')
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(all_puzzles, f, ensure_ascii=False, indent=2)
+                print(f"Partial output written to {output_path}")
+                return
             hints = sum(1 for row in puzzle for cell in row if cell != 0)
             score = 81 - hints
             puzzle_data = {

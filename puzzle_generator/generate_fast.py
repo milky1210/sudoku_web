@@ -5,6 +5,7 @@
 import json
 import random
 import os
+from copy import deepcopy
 
 
 class FastSudokuGenerator:
@@ -66,15 +67,86 @@ class FastSudokuGenerator:
     
     def remove_numbers(self, board: list[list[int]], count: int) -> list[list[int]]:
         """指定された数のセルを削除"""
+        # 深いコピーを作る（元の解を壊さない）
         puzzle = [row[:] for row in board]
         cells = [(i, j) for i in range(self.size) for j in range(self.size)]
         random.shuffle(cells)
-        
-        for i in range(min(count, len(cells))):
-            row, col = cells[i]
+
+        removed = 0
+
+        for (row, col) in cells:
+            if removed >= count:
+                break
+
+            # 一時的に消して一意解かを確認する
+            backup = puzzle[row][col]
             puzzle[row][col] = 0
-        
+
+            sols = self.count_solutions(puzzle, limit=2)
+            if sols == 1:
+                removed += 1
+            else:
+                # 多解が発生するなら戻す
+                puzzle[row][col] = backup
+
+        if removed < count:
+            print(f"警告: 要求された{count}個の削除に対して、実際に削除できたのは{removed}個でした。")
+
         return puzzle
+
+    def count_solutions(self, board: list[list[int]], limit: int = 2) -> int:
+        """与えられた盤面の解の数を数える（上限を指定して早期終了）"""
+        # Use a copy to avoid mutating the original
+        work = [row[:] for row in board]
+        count = 0
+
+        def find_least_candidates():
+            """Find empty cell with the fewest candidates (MRV heuristic).
+            Returns (i, j, candidates) or (None, None, None) if no empty cells.
+            """
+            best_i = best_j = None
+            best_cands = None
+
+            for i in range(self.size):
+                for j in range(self.size):
+                    if work[i][j] == 0:
+                        cands = []
+                        for num in range(1, 10):
+                            if self.is_valid(work, i, j, num):
+                                cands.append(num)
+                        if not cands:
+                            return i, j, []  # dead end
+                        if best_cands is None or len(cands) < len(best_cands):
+                            best_i, best_j, best_cands = i, j, cands
+                            if len(best_cands) == 1:
+                                return best_i, best_j, best_cands
+
+            return best_i, best_j, best_cands
+
+        def backtrack():
+            nonlocal count
+            if count >= limit:
+                return
+
+            i, j, cands = find_least_candidates()
+            if i is None:
+                # no empty cells -> found a solution
+                count += 1
+                return
+
+            if not cands:
+                # dead end
+                return
+
+            for num in cands:
+                work[i][j] = num
+                backtrack()
+                work[i][j] = 0
+                if count >= limit:
+                    return
+
+        backtrack()
+        return count
     
     def generate_puzzle(self, difficulty: str = 'medium') -> tuple[list[list[int]], list[list[int]]]:
         """
