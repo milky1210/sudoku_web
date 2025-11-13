@@ -15,23 +15,25 @@
           </p>
 
           <div class="setting-options">
-            <label 
-              class="setting-option" 
-              :class="{ 
+            <label
+              class="setting-option"
+              :class="{
                 selected: userProfile.highlightMode === 'invalid',
                 disabled: !canUseMode('invalid')
               }"
             >
-              <input 
-                type="radio" 
-                value="invalid" 
+              <input
+                type="radio"
+                value="invalid"
                 v-model="userProfile.highlightMode"
                 :disabled="!canUseMode('invalid')"
               />
               <div class="option-content">
                 <div class="option-header">
                   <span class="option-title">無効セル表示</span>
-                  <span class="unlock-badge">Lv.1</span>
+                  <span class="unlock-badge" :class="{ locked: !userProfile.canUseInvalidHighlight }">
+                    {{ userProfile.canUseInvalidHighlight ? 'Lv.10' : '🔒 Lv.10で解放' }}
+                  </span>
                 </div>
                 <p class="option-desc">
                   選択した数字と同じ数字、および置けないセルをハイライト表示
@@ -39,16 +41,16 @@
               </div>
             </label>
 
-            <label 
-              class="setting-option" 
-              :class="{ 
+            <label
+              class="setting-option"
+              :class="{
                 selected: userProfile.highlightMode === 'number',
                 disabled: !canUseMode('number')
               }"
             >
-              <input 
-                type="radio" 
-                value="number" 
+              <input
+                type="radio"
+                value="number"
                 v-model="userProfile.highlightMode"
                 :disabled="!canUseMode('number')"
               />
@@ -65,16 +67,16 @@
               </div>
             </label>
 
-            <label 
-              class="setting-option" 
-              :class="{ 
+            <label
+              class="setting-option"
+              :class="{
                 selected: userProfile.highlightMode === 'none',
                 disabled: !canUseMode('none')
               }"
             >
-              <input 
-                type="radio" 
-                value="none" 
+              <input
+                type="radio"
+                value="none"
                 v-model="userProfile.highlightMode"
                 :disabled="!canUseMode('none')"
               />
@@ -141,8 +143,9 @@ defineEmits<{
 }>()
 
 const canUseMode = (mode: 'none' | 'number' | 'invalid'): boolean => {
-  if (mode === 'invalid' || mode === 'none') return true
+  if (mode === 'none') return userProfile.canUseNoneHighlight
   if (mode === 'number') return userProfile.canUseNumberHighlight
+  if (mode === 'invalid') return userProfile.canUseInvalidHighlight
   return false
 }
 

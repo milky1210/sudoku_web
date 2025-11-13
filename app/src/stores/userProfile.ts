@@ -54,9 +54,10 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
   // Highlight mode unlock levels
   const highlightMode = ref<'none' | 'number' | 'invalid'>('invalid')
-  
+
   const canUseNumberHighlight = computed(() => level.value >= 5)
   const canUseNoneHighlight = computed(() => level.value >= 1)
+  const canUseInvalidHighlight = computed(() => level.value >= 10)
 
   // Actions
   const addExperience = (exp: number): { leveledUp: boolean; newLevel: number } => {
@@ -88,6 +89,10 @@ export const useUserProfileStore = defineStore('userProfile', () => {
   const setHighlightMode = (mode: 'none' | 'number' | 'invalid'): void => {
     if (mode === 'number' && !canUseNumberHighlight.value) {
       console.error('Number highlight mode requires level 5')
+      return
+    }
+    if (mode === 'invalid' && !canUseInvalidHighlight.value) {
+      console.error('Invalid-cell highlight mode requires level 10')
       return
     }
     highlightMode.value = mode
@@ -149,6 +154,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     espAccuracy,
     canUseNumberHighlight,
     canUseNoneHighlight,
+  canUseInvalidHighlight,
     // Actions
     addExperience,
     setSelectedSkills,
