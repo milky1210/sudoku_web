@@ -247,17 +247,22 @@ export const useSudokuStore = defineStore('sudoku', () => {
   }
 
   const selectCell = (index: number): void => {
-    // 数字が入っているセル（固定セルまたは入力済みセル）をクリックした場合
     const clickedCell = grid.value[index]
-    if (clickedCell.value !== null) {
-      // その数字を選択状態にする
+    
+    // 固定セル（パズルの一部）の場合は選択状態にせず、数字だけ選択
+    if (clickedCell.fixed && clickedCell.value !== null) {
       selectedNumber.value = clickedCell.value
       selectedCell.value = -1
       return
     }
 
-    // 空のセルの場合
+    // 入力済みの非固定セルまたは空のセルの場合はセルを選択
     selectedCell.value = index
+    
+    // 入力済みの場合はその数字も選択状態にする
+    if (clickedCell.value !== null) {
+      selectedNumber.value = clickedCell.value
+    }
   }
 
   const inputNumberToCell = (num: number): void => {
