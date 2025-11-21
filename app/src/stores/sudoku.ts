@@ -210,7 +210,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
           fixed: board[i][j] !== 0,
           error: false,
           memos: [],
-          highlight: false
+          highlight: false,
         })
       }
     }
@@ -248,7 +248,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
 
   const selectCell = (index: number): void => {
     const clickedCell = grid.value[index]
-    
+
     // 固定セル（パズルの一部）の場合は選択状態にせず、数字だけ選択
     if (clickedCell.fixed && clickedCell.value !== null) {
       selectedNumber.value = clickedCell.value
@@ -258,7 +258,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
 
     // 入力済みの非固定セルまたは空のセルの場合はセルを選択
     selectedCell.value = index
-    
+
     // 入力済みの場合はその数字も選択状態にする
     if (clickedCell.value !== null) {
       selectedNumber.value = clickedCell.value
@@ -317,7 +317,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     // 現在の状態を保存
     history.value.push({
       grid: JSON.parse(JSON.stringify(grid.value)),
-      cost: cost.value
+      cost: cost.value,
     })
 
     historyIndex.value = history.value.length - 1
@@ -798,10 +798,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
       // Find pairs
       for (let i = 0; i < cells.length; i++) {
         for (let j = i + 1; j < cells.length; j++) {
-          if (
-            cells[i].memos[0] === cells[j].memos[0] &&
-            cells[i].memos[1] === cells[j].memos[1]
-          ) {
+          if (cells[i].memos[0] === cells[j].memos[0] && cells[i].memos[1] === cells[j].memos[1]) {
             // Found a naked pair, remove these candidates from other cells in the row
             const pairNums = cells[i].memos
             for (let col = 0; col < 9; col++) {
@@ -852,7 +849,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
     }
 
     console.log('Executing skill:', skillId)
-    
+
     // Execute skill based on ID
     switch (skillId) {
       case 'fill8':
@@ -969,11 +966,11 @@ export const useSudokuStore = defineStore('sudoku', () => {
     try {
       await puzzleService.loadPuzzles()
       const puzzle = puzzleService.getRandomPuzzle(difficulty)
-      
+
       if (!puzzle) {
         throw new Error(`No puzzles found for difficulty: ${difficulty}`)
       }
-      
+
       currentDifficulty.value = difficulty
       currentPuzzle.value = puzzle
       grid.value = boardToGrid(puzzle.puzzle)
@@ -1046,7 +1043,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
       easy: 50,
       medium: 100,
       hard: 200,
-      expert: 400
+      expert: 400,
     }
 
     let exp = baseExp[difficulty]
@@ -1098,7 +1095,7 @@ export const useSudokuStore = defineStore('sudoku', () => {
       const timeMs = Date.now() - startTime.value
       const exp = calculateExperience(currentDifficulty.value || 'medium', timeMs)
       const result = userProfile.addExperience(exp)
-      
+
       gameState.value = 'completed'
       message.value = `正解！ +${exp}経験値`
       if (result.leveledUp) {
@@ -1147,6 +1144,6 @@ export const useSudokuStore = defineStore('sudoku', () => {
     startGameWithDifficulty,
     showDifficultySelect,
     resetGame,
-    checkSolution
+    checkSolution,
   }
 })

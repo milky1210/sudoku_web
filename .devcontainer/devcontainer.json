@@ -4,7 +4,8 @@
     "dockerfile": "../docker/Dockerfile",
     "context": ".."
   },
-  "workspaceFolder": "/app",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -21,7 +22,7 @@
     }
   },
   "forwardPorts": [5173],
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "cd /workspace/app && npm install && sudo chown -R vscode:vscode /workspace/app",
   "remoteUser": "vscode",
   "containerEnv": {
     "GIT_EDITOR": "code --wait"

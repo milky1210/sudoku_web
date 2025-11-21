@@ -10,16 +10,14 @@
         <!-- Highlight Mode Settings -->
         <div class="setting-section">
           <h3>ハイライト表示</h3>
-          <p class="setting-description">
-            数字をタップした時の表示方法を選択できます
-          </p>
+          <p class="setting-description">数字をタップした時の表示方法を選択できます</p>
 
           <div class="setting-options">
             <label
               class="setting-option"
               :class="{
                 selected: userProfile.highlightMode === 'invalid',
-                disabled: !canUseMode('invalid')
+                disabled: !canUseMode('invalid'),
               }"
             >
               <input
@@ -31,7 +29,10 @@
               <div class="option-content">
                 <div class="option-header">
                   <span class="option-title">無効セル表示</span>
-                  <span class="unlock-badge" :class="{ locked: !userProfile.canUseInvalidHighlight }">
+                  <span
+                    class="unlock-badge"
+                    :class="{ locked: !userProfile.canUseInvalidHighlight }"
+                  >
                     {{ userProfile.canUseInvalidHighlight ? 'Lv.10' : '🔒 Lv.10で解放' }}
                   </span>
                 </div>
@@ -45,7 +46,7 @@
               class="setting-option"
               :class="{
                 selected: userProfile.highlightMode === 'number',
-                disabled: !canUseMode('number')
+                disabled: !canUseMode('number'),
               }"
             >
               <input
@@ -57,13 +58,14 @@
               <div class="option-content">
                 <div class="option-header">
                   <span class="option-title">数字ハイライト</span>
-                  <span class="unlock-badge" :class="{ locked: !userProfile.canUseNumberHighlight }">
+                  <span
+                    class="unlock-badge"
+                    :class="{ locked: !userProfile.canUseNumberHighlight }"
+                  >
                     {{ userProfile.canUseNumberHighlight ? 'Lv.5' : '🔒 Lv.5で解放' }}
                   </span>
                 </div>
-                <p class="option-desc">
-                  選択した数字と同じ数字のみハイライト表示
-                </p>
+                <p class="option-desc">選択した数字と同じ数字のみハイライト表示</p>
               </div>
             </label>
 
@@ -71,7 +73,7 @@
               class="setting-option"
               :class="{
                 selected: userProfile.highlightMode === 'none',
-                disabled: !canUseMode('none')
+                disabled: !canUseMode('none'),
               }"
             >
               <input
@@ -85,9 +87,7 @@
                   <span class="option-title">ハイライトなし</span>
                   <span class="unlock-badge">Lv.1</span>
                 </div>
-                <p class="option-desc">
-                  ハイライト表示を行わない（上級者向け）
-                </p>
+                <p class="option-desc">ハイライト表示を行わない（上級者向け）</p>
               </div>
             </label>
           </div>
@@ -115,19 +115,13 @@
         <!-- Reset Progress -->
         <div class="setting-section danger-zone">
           <h3>危険な操作</h3>
-          <button @click="confirmReset" class="btn-danger">
-            進行状況をリセット
-          </button>
-          <p class="warning-text">
-            ⚠️ レベル、経験値、選択したスキルがリセットされます
-          </p>
+          <button @click="confirmReset" class="btn-danger">進行状況をリセット</button>
+          <p class="warning-text">⚠️ レベル、経験値、選択したスキルがリセットされます</p>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button @click="$emit('close')" class="btn-primary">
-          閉じる
-        </button>
+        <button @click="$emit('close')" class="btn-primary">閉じる</button>
       </div>
     </div>
   </div>
@@ -275,7 +269,7 @@ const confirmReset = (): void => {
   cursor: not-allowed;
 }
 
-.setting-option input[type="radio"] {
+.setting-option input[type='radio'] {
   margin-top: 2px;
   flex-shrink: 0;
 }

@@ -38,26 +38,26 @@ const difficultyLevels: DifficultyLevel[] = [
     value: 'easy',
     name: '簡単',
     icon: '😊',
-    description: '初心者向け - ヒント数: 38-40'
+    description: '初心者向け - ヒント数: 38-40',
   },
   {
     value: 'medium',
     name: '普通',
     icon: '🤔',
-    description: '中級者向け - ヒント数: 30-35'
+    description: '中級者向け - ヒント数: 30-35',
   },
   {
     value: 'hard',
     name: '難しい',
     icon: '😤',
-    description: '上級者向け - ヒント数: 25-29'
+    description: '上級者向け - ヒント数: 25-29',
   },
   {
     value: 'expert',
     name: '超難関',
     icon: '🔥',
-    description: 'エキスパート - ヒント数: 22-24'
-  }
+    description: 'エキスパート - ヒント数: 22-24',
+  },
 ]
 
 const errorMessage = ref<string>('')

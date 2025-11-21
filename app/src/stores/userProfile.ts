@@ -11,9 +11,36 @@ const STORAGE_KEY = 'sudoku-user-profile'
 
 // Experience required for each level (cumulative)
 const LEVEL_REQUIREMENTS = [
-  0, 100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700, // Levels 1-10
-  3250, 3850, 4500, 5200, 5950, 6750, 7600, 8500, 9450, 10450, // Levels 11-20
-  11500, 12600, 13750, 14950, 16200, 17500, 18850, 20250, 21700, 23200, // Levels 21-30
+  0,
+  100,
+  250,
+  450,
+  700,
+  1000,
+  1350,
+  1750,
+  2200,
+  2700, // Levels 1-10
+  3250,
+  3850,
+  4500,
+  5200,
+  5950,
+  6750,
+  7600,
+  8500,
+  9450,
+  10450, // Levels 11-20
+  11500,
+  12600,
+  13750,
+  14950,
+  16200,
+  17500,
+  18850,
+  20250,
+  21700,
+  23200, // Levels 21-30
 ]
 
 export const useUserProfileStore = defineStore('userProfile', () => {
@@ -74,7 +101,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
     return {
       leveledUp: level.value > oldLevel,
-      newLevel: level.value
+      newLevel: level.value,
     }
   }
 
@@ -117,7 +144,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
       const profile: UserProfile = {
         level: level.value,
         experience: experience.value,
-        selectedSkills: selectedSkills.value
+        selectedSkills: selectedSkills.value,
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
     } catch (error) {
@@ -134,9 +161,13 @@ export const useUserProfileStore = defineStore('userProfile', () => {
   }
 
   // Watch for changes and auto-save
-  watch([level, experience, selectedSkills], () => {
-    saveProfile()
-  }, { deep: true })
+  watch(
+    [level, experience, selectedSkills],
+    () => {
+      saveProfile()
+    },
+    { deep: true },
+  )
 
   // Load profile on initialization
   loadProfile()
@@ -154,13 +185,13 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     espAccuracy,
     canUseNumberHighlight,
     canUseNoneHighlight,
-  canUseInvalidHighlight,
+    canUseInvalidHighlight,
     // Actions
     addExperience,
     setSelectedSkills,
     setHighlightMode,
     loadProfile,
     saveProfile,
-    resetProfile
+    resetProfile,
   }
 })

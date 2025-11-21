@@ -8,7 +8,7 @@
 
       <div class="modal-body">
         <p class="instruction">
-          使用するスキルを4つ選択してください<br>
+          使用するスキルを4つ選択してください<br />
           （空欄も選択可能）
         </p>
 
@@ -16,8 +16,8 @@
         <div class="current-selection">
           <h3>選択中のスキル ({{ selectedCount }}/4)</h3>
           <div class="selected-skills">
-            <div 
-              v-for="(skillId, index) in localSelection" 
+            <div
+              v-for="(skillId, index) in localSelection"
               :key="index"
               class="selected-slot"
               :class="{ empty: !skillId }"
@@ -43,10 +43,13 @@
                 v-for="skill in getSkillsByCategory(category.id)"
                 :key="skill.id"
                 @click="toggleSkill(skill.id)"
-                :class="['skill-item', { 
-                  selected: isSelected(skill.id),
-                  disabled: !canSelect(skill.id)
-                }]"
+                :class="[
+                  'skill-item',
+                  {
+                    selected: isSelected(skill.id),
+                    disabled: !canSelect(skill.id),
+                  },
+                ]"
                 :disabled="!canSelect(skill.id)"
               >
                 <span class="skill-icon-large">{{ skill.icon }}</span>
@@ -59,7 +62,7 @@
                 </div>
                 <span v-if="isSelected(skill.id)" class="check-mark">✓</span>
               </button>
-              
+
               <!-- Empty/None option -->
               <button
                 v-if="category.id === 'basic'"
@@ -82,9 +85,7 @@
 
       <div class="modal-footer">
         <button @click="cancel" class="btn-secondary">キャンセル</button>
-        <button @click="save" class="btn-primary" :disabled="selectedCount !== 4">
-          保存
-        </button>
+        <button @click="save" class="btn-primary" :disabled="selectedCount !== 4">保存</button>
       </div>
     </div>
   </div>
@@ -103,7 +104,7 @@ const localSelection = ref<string[]>([...userProfile.selectedSkills])
 const categories = [
   { id: 'basic' as const, name: '基本スキル' },
   { id: 'advanced' as const, name: '応用スキル' },
-  { id: 'special' as const, name: '特殊スキル' }
+  { id: 'special' as const, name: '特殊スキル' },
 ]
 
 const emit = defineEmits<{
@@ -112,11 +113,11 @@ const emit = defineEmits<{
 }>()
 
 const selectedCount = computed(() => {
-  return localSelection.value.filter(id => id !== '').length
+  return localSelection.value.filter((id) => id !== '').length
 })
 
 const getSkillsByCategory = (category: 'basic' | 'advanced' | 'special'): Skill[] => {
-  return ALL_SKILLS.filter(skill => skill.category === category)
+  return ALL_SKILLS.filter((skill) => skill.category === category)
 }
 
 const getSkillIcon = (skillId: string): string => {
@@ -439,7 +440,8 @@ const save = (): void => {
   border-top: 2px solid #e9ecef;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
   flex: 1;
   padding: 14px 24px;
   border: none;

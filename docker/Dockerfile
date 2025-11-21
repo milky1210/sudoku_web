@@ -4,21 +4,17 @@ FROM node:20.18.1-bookworm-slim
 RUN apt-get update && apt-get install -y \
     git \
     sudo \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
-# Create vscode user with same UID/GID as host user (1000:1000)
-RUN groupadd -g 1000 vscode \
-    && useradd -m -u 1000 -g vscode -s /bin/bash vscode \
+# Create vscode user by renaming existing node user
+RUN usermod -l vscode node \
+    && usermod -d /home/vscode -m vscode \
+    && groupmod -n vscode node \
     && echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # 作業ディレクトリを設定
-WORKDIR /app
-
-# Change ownership of app directory to vscode user
-RUN chown -R vscode:vscode /app
+WORKDIR /workspace
 
 # Switch to vscode user
 USER vscode
-
-# ソースコードをコピー
-COPY --chown=vscode:vscode app .

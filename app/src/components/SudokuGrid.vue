@@ -24,15 +24,16 @@
       <div class="header">
         <h1>数独</h1>
         <div class="header-right">
-          <button @click="showSettingsModal = true" class="icon-btn" title="設定">
-            ⚙️
-          </button>
-          <button @click="showSkillModal = true" class="icon-btn" title="スキル選択">
-            📋
-          </button>
+          <button @click="showSettingsModal = true" class="icon-btn" title="設定">⚙️</button>
+          <button @click="showSkillModal = true" class="icon-btn" title="スキル選択">📋</button>
           <div class="cost-display">
             コスト:
-            <span v-for="i in store.maxCost" :key="i" class="cost-dot" :class="{ filled: i <= store.cost }">
+            <span
+              v-for="i in store.maxCost"
+              :key="i"
+              class="cost-dot"
+              :class="{ filled: i <= store.cost }"
+            >
               ●
             </span>
           </div>
@@ -45,7 +46,9 @@
         <div class="exp-bar-container">
           <div class="exp-bar" :style="{ width: userProfile.experienceProgress + '%' }"></div>
         </div>
-        <span class="exp-text">{{ userProfile.experience }} / {{ userProfile.nextLevelExperience }}</span>
+        <span class="exp-text"
+          >{{ userProfile.experience }} / {{ userProfile.nextLevelExperience }}</span
+        >
       </div>
 
       <!-- 難易度表示 -->
@@ -77,10 +80,7 @@
     />
 
     <!-- Settings modal -->
-    <SettingsModal
-      v-if="showSettingsModal"
-      @close="showSettingsModal = false"
-    />
+    <SettingsModal v-if="showSettingsModal" @close="showSettingsModal = false" />
   </div>
 </template>
 
@@ -113,7 +113,7 @@ const difficultyNames: Record<Difficulty, string> = {
   easy: '簡単',
   medium: '普通',
   hard: '難しい',
-  expert: '超難関'
+  expert: '超難関',
 }
 
 const handleDifficultySelect = async (difficulty: Difficulty): Promise<void> => {
@@ -134,27 +134,30 @@ const handleSkillSave = (skills: string[]): void => {
 }
 
 // Watch for game completion
-watch(() => store.gameState, (newState) => {
-  if (newState === 'completed') {
-    completionTime.value = Date.now() - store.startTime
-    // Extract experience info from message if available
-    // This is a workaround - ideally we'd pass this data directly
-    const match = store.message.match(/\+(\d+)経験値/)
-    if (match) {
-      earnedExp.value = parseInt(match[1])
+watch(
+  () => store.gameState,
+  (newState) => {
+    if (newState === 'completed') {
+      completionTime.value = Date.now() - store.startTime
+      // Extract experience info from message if available
+      // This is a workaround - ideally we'd pass this data directly
+      const match = store.message.match(/\+(\d+)経験値/)
+      if (match) {
+        earnedExp.value = parseInt(match[1])
+      }
+      const levelMatch = store.message.match(/Lv\.(\d+)/)
+      if (levelMatch) {
+        leveledUp.value = true
+        newLevel.value = parseInt(levelMatch[1])
+        oldLevel.value = newLevel.value - 1
+      } else {
+        leveledUp.value = false
+        newLevel.value = userProfile.level
+        oldLevel.value = userProfile.level
+      }
     }
-    const levelMatch = store.message.match(/Lv\.(\d+)/)
-    if (levelMatch) {
-      leveledUp.value = true
-      newLevel.value = parseInt(levelMatch[1])
-      oldLevel.value = newLevel.value - 1
-    } else {
-      leveledUp.value = false
-      newLevel.value = userProfile.level
-      oldLevel.value = userProfile.level
-    }
-  }
-})
+  },
+)
 </script>
 
 <style scoped>

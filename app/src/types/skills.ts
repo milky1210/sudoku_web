@@ -19,7 +19,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 0,
     description: '8個埋まっている行・列・ブロックの残り1マスを自動入力',
     icon: '⑧',
-    category: 'basic'
+    category: 'basic',
   },
   {
     id: 'fill8All',
@@ -27,7 +27,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 1,
     description: '8個埋まっている全ての行・列・ブロックを自動入力',
     icon: '🎯',
-    category: 'basic'
+    category: 'basic',
   },
   {
     id: 'possible1',
@@ -35,7 +35,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 0,
     description: '候補が1つしかないセルを1つ自動入力',
     icon: '①',
-    category: 'basic'
+    category: 'basic',
   },
   {
     id: 'possible1All',
@@ -43,7 +43,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 1,
     description: '候補が1つしかない全てのセルを自動入力',
     icon: '✨',
-    category: 'basic'
+    category: 'basic',
   },
   {
     id: 'memoN',
@@ -51,7 +51,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 1,
     description: '選択した数字の候補を全セルにメモ',
     icon: '📝',
-    category: 'basic'
+    category: 'basic',
   },
   {
     id: 'memoAll',
@@ -59,7 +59,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 2,
     description: '全ての空セルに候補をメモ',
     icon: '📋',
-    category: 'advanced'
+    category: 'advanced',
   },
   // Special skills
   {
@@ -68,7 +68,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 1,
     description: '現在の盤面を保存（loadボタンに切り替わる）',
     icon: '💾',
-    category: 'special'
+    category: 'special',
   },
   {
     id: 'load',
@@ -76,7 +76,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 2,
     description: '保存した盤面を復元（saveボタンに切り替わる）',
     icon: '📂',
-    category: 'special'
+    category: 'special',
   },
   {
     id: 'esp',
@@ -84,7 +84,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 3,
     description: '候補が2つ以上の中で最小のセルを高確率で正解入力',
     icon: '🔮',
-    category: 'special'
+    category: 'special',
   },
   {
     id: 'hint',
@@ -92,7 +92,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 2,
     description: '選択したセルに正しい数字を表示（メモとして）',
     icon: '💡',
-    category: 'advanced'
+    category: 'advanced',
   },
   {
     id: 'clear',
@@ -100,7 +100,7 @@ export const ALL_SKILLS: Skill[] = [
     cost: 1,
     description: '選択したセルとその候補をクリア',
     icon: '🗑️',
-    category: 'basic'
+    category: 'basic',
   },
   {
     id: 'nakedPair',
@@ -108,8 +108,8 @@ export const ALL_SKILLS: Skill[] = [
     cost: 2,
     description: '同じ2つの候補を持つセルペアから他のセルの候補を削除',
     icon: '👥',
-    category: 'advanced'
-  }
+    category: 'advanced',
+  },
 ]
 
 // Get skill by ID

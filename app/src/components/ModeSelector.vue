@@ -1,10 +1,7 @@
 <template>
   <div class="mode-and-skills">
     <!-- モード切り替えボタン -->
-    <button
-      @click="toggleMode"
-      :class="['mode-button', store.currentMode]"
-    >
+    <button @click="toggleMode" :class="['mode-button', store.currentMode]">
       <span class="mode-icon">{{ modeIcon }}</span>
       <span class="mode-text">{{ modeText }}</span>
     </button>

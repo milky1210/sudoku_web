@@ -2,7 +2,7 @@
   <div class="completion-screen">
     <div class="completion-content">
       <h2 class="completion-title">🎉 完成！</h2>
-      
+
       <!-- Time display -->
       <div class="time-info">
         <span class="time-label">クリアタイム</span>
@@ -15,7 +15,7 @@
           <span class="exp-label">獲得経験値</span>
           <span class="exp-value">+{{ experience }}</span>
         </div>
-        
+
         <div v-if="leveledUp" class="level-up-banner">
           <span class="level-up-text">🌟 レベルアップ！</span>
           <span class="level-text">Lv.{{ oldLevel }} → Lv.{{ newLevel }}</span>
@@ -41,10 +41,7 @@
           <span>{{ userProfile.experience }} / {{ userProfile.nextLevelExperience }}</span>
         </div>
         <div class="progress-bar">
-          <div 
-            class="progress-fill" 
-            :style="{ width: userProfile.experienceProgress + '%' }"
-          ></div>
+          <div class="progress-fill" :style="{ width: userProfile.experienceProgress + '%' }"></div>
         </div>
       </div>
 
@@ -64,12 +61,8 @@
 
       <!-- Action buttons -->
       <div class="action-buttons">
-        <button @click="$emit('continue')" class="btn-primary">
-          次の問題へ
-        </button>
-        <button @click="$emit('back')" class="btn-secondary">
-          難易度選択に戻る
-        </button>
+        <button @click="$emit('continue')" class="btn-primary">次の問題へ</button>
+        <button @click="$emit('back')" class="btn-secondary">難易度選択に戻る</button>
       </div>
     </div>
   </div>
@@ -207,7 +200,8 @@ const formattedTime = computed(() => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -307,7 +301,8 @@ const formattedTime = computed(() => {
   gap: 12px;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
   padding: 14px 24px;
   border: none;
   border-radius: 8px;

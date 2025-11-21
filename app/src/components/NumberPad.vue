@@ -5,7 +5,10 @@
       :key="num"
       @click="store.handleNumberClick(num)"
       :disabled="store.isNumberComplete(num)"
-      :class="['number-btn', { selected: store.selectedNumber === num, complete: store.isNumberComplete(num) }]"
+      :class="[
+        'number-btn',
+        { selected: store.selectedNumber === num, complete: store.isNumberComplete(num) },
+      ]"
     >
       {{ num }}
     </button>
