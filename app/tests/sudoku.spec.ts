@@ -446,4 +446,62 @@ test.describe('Sudoku App', () => {
     // コスト不足の場合もあるため、状態が変わったかを確認
     expect(typeof isDisabledAfter).toBe('boolean');
   });
+
+  test('should allow overwriting user-written numbers', async ({ page }) => {
+    // Find an empty cell
+    const cells = page.locator('.cell');
+    let emptyCellIndex = -1;
+
+    for (let i = 0; i < 81; i++) {
+      const cell = cells.nth(i);
+      const hasFixedClass = await cell.evaluate(el => el.querySelector('.fixed-value') !== null);
+      if (!hasFixedClass) {
+        emptyCellIndex = i;
+        break;
+      }
+    }
+
+    const emptyCell = cells.nth(emptyCellIndex);
+    
+    // Enter a number
+    await emptyCell.click();
+    await page.waitForTimeout(100);
+    await page.locator('.number-btn').filter({ hasText: /^3$/ }).click();
+    await page.waitForTimeout(200);
+    
+    // Verify number was entered
+    await expect(emptyCell.locator('.main-value')).toContainText('3');
+    
+    // Click on the cell with the written number to select it
+    await emptyCell.click();
+    await page.waitForTimeout(100);
+    
+    // Verify the cell is selected (should have 'selected' class)
+    const isSelected = await emptyCell.evaluate(el => el.classList.contains('selected'));
+    expect(isSelected).toBe(true);
+    
+    // Overwrite with a different number
+    await page.locator('.number-btn').filter({ hasText: /^7$/ }).click();
+    await page.waitForTimeout(200);
+    
+    // Verify the number was overwritten
+    await expect(emptyCell.locator('.main-value')).toContainText('7');
+  });
+
+  test('should not allow editing fixed cells', async ({ page }) => {
+    // Find a fixed cell
+    const fixedCell = page.locator('.cell').locator('.fixed-value').first();
+    await expect(fixedCell).toBeVisible();
+    
+    // Get the parent cell element
+    const parentCell = fixedCell.locator('..');
+    
+    // Click on the fixed cell
+    await fixedCell.click();
+    await page.waitForTimeout(100);
+    
+    // Verify the cell is NOT selected (should not have 'selected' class)
+    const isSelected = await parentCell.evaluate(el => el.classList.contains('selected'));
+    expect(isSelected).toBe(false);
+  });
 });
