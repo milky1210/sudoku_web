@@ -22,7 +22,7 @@
     }
   },
   "forwardPorts": [5173],
-  "postCreateCommand": "cd /workspace/app && npm install && sudo chown -R vscode:vscode /workspace/app",
+  "postCreateCommand": "cd /workspace/app && npm install && sudo chown -R vscode:vscode /workspace/app && git config --global user.name \"${localEnv:GIT_USER_NAME:-Dev User}\" && git config --global user.email \"${localEnv:GIT_USER_EMAIL:-dev@example.com}\"",
   "remoteUser": "vscode",
   "containerEnv": {
     "GIT_EDITOR": "code --wait"
