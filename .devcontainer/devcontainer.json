@@ -14,10 +14,19 @@
         "esbenp.prettier-vscode",
         "ms-playwright.playwright",
         "ms-vscode.vscode-json"
-      ]
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
     }
   },
   "forwardPorts": [5173],
   "postCreateCommand": "npm install",
-  "remoteUser": "node"
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "GIT_EDITOR": "code --wait"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  }
 }
