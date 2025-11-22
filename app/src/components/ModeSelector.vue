@@ -1,17 +1,14 @@
 <template>
   <div class="mode-and-skills">
     <!-- モード切り替えボタン -->
-    <button
-      @click="toggleMode"
-      :class="['mode-button', store.currentMode]"
-    >
+    <button @click="toggleMode" :class="['mode-button', store.currentMode]">
       <span class="mode-icon">{{ modeIcon }}</span>
       <span class="mode-text">{{ modeText }}</span>
     </button>
 
     <!-- スキルボタン -->
     <button
-      v-for="skill in store.skills"
+      v-for="skill in store.selectedSkills"
       :key="skill.id"
       @click="handleSkillClick(skill.id)"
       @touchstart.prevent="handleTouchStart(skill)"
@@ -23,7 +20,7 @@
       :disabled="isSkillDisabled(skill)"
       :class="['skill-btn', `skill-${skill.id}`]"
     >
-      <span class="skill-icon">{{ getSkillIcon(skill.id) }}</span>
+      <span class="skill-icon">{{ skill.icon }}</span>
       <span class="skill-cost">{{ skill.cost }}</span>
     </button>
 
@@ -65,12 +62,18 @@ const modeText = computed(() => {
 const isSkillDisabled = (skill: Skill): boolean => {
   if (skill.cost > store.cost) return true
   switch (skill.id) {
+    case 'fill8':
     case 'auto89':
       // 残り1マスの箇所があるか直接チェック
       if (!store.grid || store.grid.length === 0) return true
       return !hasOneCellGap()
     case 'memoN':
       return store.selectedNumber === null
+    case 'hint':
+    case 'clear':
+      return store.selectedCell === -1
+    case 'load':
+      return !store.hasSavedState
     default:
       return false
   }
@@ -113,19 +116,6 @@ const hasOneCellGap = (): boolean => {
   }
 
   return false
-}
-
-const getSkillIcon = (skillId: string): string => {
-  switch (skillId) {
-    case 'auto89':
-      return '⑧'
-    case 'autoSingle':
-      return '①'
-    case 'memoN':
-      return '📝'
-    default:
-      return '💡'
-  }
 }
 
 const handleSkillClick = (skillId: string) => {

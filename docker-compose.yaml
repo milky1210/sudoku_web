@@ -14,6 +14,7 @@ services:
     environment:
       - VITE_HMR_HOST=localhost
       - CHOKIDAR_USEPOLLING=true
+    user: "1000:1000"
   
   puzzle-generator:
     build:

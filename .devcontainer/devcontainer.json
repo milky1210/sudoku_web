@@ -4,7 +4,8 @@
     "dockerfile": "../docker/Dockerfile",
     "context": ".."
   },
-  "workspaceFolder": "/app",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -14,10 +15,19 @@
         "esbenp.prettier-vscode",
         "ms-playwright.playwright",
         "ms-vscode.vscode-json"
-      ]
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
     }
   },
   "forwardPorts": [5173],
-  "postCreateCommand": "npm install",
-  "remoteUser": "node"
+  "postCreateCommand": "sudo chown -R vscode:vscode /workspace/app && cd /workspace/app && npm install && sudo npx playwright install-deps chromium && npx playwright install chromium && git config --global user.name \"${localEnv:GIT_USER_NAME:-Dev User}\" && git config --global user.email \"${localEnv:GIT_USER_EMAIL:-dev@example.com}\"",
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "GIT_EDITOR": "code --wait"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  }
 }
