@@ -36,7 +36,7 @@ test-unit:
 # E2Eテスト
 test-e2e:
 	@echo "Running E2E tests..."
-	cd $(APP_DIR) && npm install && npx playwright install webkit --with-deps && PLAYWRIGHT_ONLY=webkit npm run test:e2e
+	cd $(APP_DIR) && npm install && npx playwright install chromium --with-deps && PLAYWRIGHT_ONLY=chromium npm run test:e2e
 
 # 依存関係インストール
 install:

@@ -89,9 +89,9 @@ test.describe('Sudoku App', () => {
 
   test('should show number panel with skill buttons', async ({ page }) => {
     await expect(page.locator('.number-panel')).toBeVisible();
-    // 数字ボタン1-9 + Delボタン + スキルボタン3つ = 13ボタン
+    // 数字ボタン1-9 + Delボタン + スキルボタン4つ = 14ボタン
     await expect(page.locator('.number-btn')).toHaveCount(10);
-    await expect(page.locator('.skill-btn')).toHaveCount(3);
+    await expect(page.locator('.skill-btn')).toHaveCount(4);
   });
 
   test('should have a sudoku grid with 81 cells', async ({ page }) => {
