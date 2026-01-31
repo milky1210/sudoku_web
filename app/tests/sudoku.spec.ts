@@ -504,4 +504,43 @@ test.describe('Sudoku App', () => {
     const isSelected = await parentCell.evaluate(el => el.classList.contains('selected'));
     expect(isSelected).toBe(false);
   });
+
+  test('should enable all number buttons in memo mode regardless of completion', async ({ page }) => {
+    // In write mode, some number buttons might be disabled (complete)
+    // First, check if any complete buttons exist in write mode
+    const completeButtonsWriteMode = page.locator('.number-btn.complete');
+    const completeCountWriteMode = await completeButtonsWriteMode.count();
+
+    // Switch to memo mode
+    await page.locator('.mode-button').click();
+    await expect(page.locator('.mode-button')).toHaveClass(/memo/);
+
+    // Wait for UI to update
+    await page.waitForTimeout(100);
+
+    // In memo mode, no number buttons should be complete/disabled
+    const completeButtonsMemoMode = page.locator('.number-btn.complete');
+    const completeCountMemoMode = await completeButtonsMemoMode.count();
+    expect(completeCountMemoMode).toBe(0);
+
+    // All number buttons 1-9 should be enabled in memo mode
+    const numberButtons = page.locator('.number-btn').filter({ hasText: /^[1-9]$/ });
+    for (let i = 0; i < 9; i++) {
+      const button = numberButtons.nth(i);
+      const isDisabled = await button.isDisabled();
+      expect(isDisabled).toBe(false);
+    }
+
+    // Switch back to write mode to verify the buttons may become disabled again
+    await page.locator('.mode-button').click();
+    await expect(page.locator('.mode-button')).toHaveClass(/write/);
+    await page.waitForTimeout(100);
+
+    // If there were complete buttons in write mode before, they should be complete again
+    if (completeCountWriteMode > 0) {
+      const completeButtonsAfter = page.locator('.number-btn.complete');
+      const completeCountAfter = await completeButtonsAfter.count();
+      expect(completeCountAfter).toBeGreaterThan(0);
+    }
+  });
 });

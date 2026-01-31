@@ -74,8 +74,11 @@ export const useSudokuStore = defineStore('sudoku', () => {
     return counts
   })
 
-  // 数字が9個埋まっているかチェック
+  // 数字が9個埋まっているかチェック（メモモード時は常にfalseを返す）
   const isNumberComplete = (num: number): boolean => {
+    if (currentMode.value === 'memo') {
+      return false
+    }
     return numberCounts.value[num] >= 9
   }
 
