@@ -272,6 +272,42 @@ export const useSudokuStore = defineStore('sudoku', () => {
     cell.memos = []
     cell.error = false
     message.value = ''
+
+    // 同じ行・列・ブロックにあるメモから入力した数字を消す
+    const row = Math.floor(selectedCell.value / 9)
+    const col = selectedCell.value % 9
+    const blockRow = Math.floor(row / 3) * 3
+    const blockCol = Math.floor(col / 3) * 3
+
+    // 関連セルのインデックスを収集（重複を避けるためSetを使用）
+    const relatedCells = new Set<number>()
+
+    // 同じ行のセル
+    for (let c = 0; c < 9; c++) {
+      relatedCells.add(row * 9 + c)
+    }
+
+    // 同じ列のセル
+    for (let r = 0; r < 9; r++) {
+      relatedCells.add(r * 9 + col)
+    }
+
+    // 同じブロックのセル
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        relatedCells.add((blockRow + r) * 9 + (blockCol + c))
+      }
+    }
+
+    // 自分自身を除外してメモを消す
+    relatedCells.delete(selectedCell.value)
+    relatedCells.forEach((i) => {
+      const targetCell = grid.value[i]
+      const memoIndex = targetCell.memos.indexOf(num)
+      if (memoIndex > -1) {
+        targetCell.memos.splice(memoIndex, 1)
+      }
+    })
   }
 
   const toggleMemoInCell = (num: number): void => {
